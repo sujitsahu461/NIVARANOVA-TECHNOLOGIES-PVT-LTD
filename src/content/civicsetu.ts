@@ -96,7 +96,7 @@ export const capabilities: Capability[] = [
   },
   {
     name: 'Photo, audio and video evidence',
-    detail: 'Photos, voice notes and short videos attached to a complaint, with size limits.',
+    detail: 'Photos, voice notes and short videos attached to a complaint.',
     status: 'tested',
     evidence: '[TEST] multimedia complaint tests; [WDR] ComplaintAttachment IMAGE/AUDIO/VIDEO',
   },
@@ -104,8 +104,9 @@ export const capabilities: Capability[] = [
     name: 'Role-based access',
     detail:
       'Citizens see their own complaints, officers see their department’s queue, and administrators manage the system.',
-    status: 'tested',
-    evidence: '[TEST] permission tests; [REQ] roles',
+    // Not "tested": object-level tests for citizen ownership and department isolation are still on the roadmap.
+    status: 'implemented',
+    evidence: '[REQ] roles; [TEST] some permission tests; [PLAN] object-level isolation tests still to add',
   },
   {
     name: 'Citizen registration and sign-in',

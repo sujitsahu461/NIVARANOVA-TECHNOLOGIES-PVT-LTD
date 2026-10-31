@@ -13,6 +13,7 @@ These need a decision or a document only the company has. The site is honest wit
 5. **Brand name casing.** The brief says "NivaraNova", but the project description and company records say "Nivaranova". Pick one and use it everywhere, matching the incorporation documents. The wordmark is in `src/components/ui/Logo.tsx`, the names in `src/config/company.ts`.
 6. **Registration details.** Add CIN, GSTIN, registered office and incorporation date to `src/config/company.ts` once issued. The placeholders vanish automatically.
 7. **Leadership.** The About page has a placeholder. Team listings were not published because the project records still disagree on the roster.
+8. **Confirm the "no machine learning in V1" claim.** The About page and CivicSetu content say V1 has no ML in the complaint path, which is the documented October decision. The status file still records legacy AI modules and pickled models in the codebase (conflict C3). Before launch, trace the complaint-submission code. If anything still calls the old models, either remove it or change the wording.
 
 ## 2. Decisions that differ from the brief
 
@@ -21,7 +22,7 @@ These need a decision or a document only the company has. The site is honest wit
 | CivicSetu described as "AI-powered" | Described as a civic grievance management platform; AI categorisation listed as **Planned** | The October 2026 V1 decision removed ML from the complaint path. Calling it AI-powered would present a planned feature as operational, which the brief itself forbids. A unit test now blocks the phrase. |
 | Phone-style placeholders in the UI | Labelled chips such as "Business email: to be added", which can be hidden with one setting | Visible, editable, and impossible to mistake for real data. |
 | No privacy page listed | `/privacy` added | The contact form collects personal data, so a notice is needed. |
-| Tested / implemented / planned | Every CivicSetu capability has a status and a recorded evidence source in `src/content/civicsetu.ts` | "Tested" means covered by the V1 test suite *as reported in the project's test report*. Those tests were not re-run here, and the page says so. |
+| Tested / implemented / planned | Every CivicSetu capability has a status and a recorded evidence source in `src/content/civicsetu.ts` | "Tested" means covered by the V1 test suite *as reported in the project's test report*. Those tests were not re-run here, and the page says so. Only two capabilities qualify (complaint submission, and photo/audio/video evidence). Role-based access stays at "Implemented" because the department-isolation tests are still on the roadmap. |
 
 ## 3. Repository audit (Phase 1)
 
