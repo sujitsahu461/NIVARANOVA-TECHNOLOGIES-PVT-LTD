@@ -1,0 +1,21 @@
+# Security and caching headers.
+# Read by Cloudflare Pages and Netlify. `vite preview` also applies the /* block
+# (see vite.config.ts), so the browser tests run under the same policy.
+#
+# When a contact endpoint is connected, add its origin to connect-src, e.g.
+#   connect-src 'self' https://api.example.in
+#
+# Strict-Transport-Security: only keep this once the site is served over HTTPS
+# on its final domain. includeSubDomains is deliberately not set.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
