@@ -70,7 +70,7 @@ export function Footer() {
             © {siteConfig.buildYear} {company.legalName}
           </p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            {registration.cin ? <span>CIN {registration.cin}</span> : <Placeholder label="CIN" />}
+            {registration.cin ? <span>CIN {registration.cin}</span> : null}
             {registration.gstin ? <span>GSTIN {registration.gstin}</span> : null}
             <Link to={routeMeta.privacy.path} className="transition-colors hover:text-ink">
               Privacy notice

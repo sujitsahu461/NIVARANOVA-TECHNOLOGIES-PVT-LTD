@@ -57,7 +57,7 @@ describe('copy', () => {
 
   it('keeps registration and contact details to the values the company supplied', () => {
     // Update this test deliberately when real, verified values are added.
-    expect(company.registration).toEqual({ cin: null, gstin: null, registeredOffice: null, incorporatedOn: null })
+    expect(company.registration).toEqual({ cin: null, gstin: null })
     expect(company.contact).toEqual({
       email: 'nivaranovapvtltd@gmail.com',
       phone: '+91 76568 52710',

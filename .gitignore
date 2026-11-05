@@ -1,3 +1,15 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+
+# Test output
+coverage
+playwright-report
+test-results
+
 # Logs
 logs
 *.log
@@ -7,25 +19,42 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Environment files can hold keys. Only the empty template is committed.
+.env
+.env.*
+!.env.example
 *.local
 
-# Editor directories and files
+# Keys, certificates and credentials. Never commit these.
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+credentials*.json
+service-account*.json
+secrets/
+.npmrc
+
+# Hosting CLI state (can hold account tokens)
+.netlify
+.wrangler
+.vercel
+
+# Personal Claude Code settings (the shared launch.json is committed)
+.claude/settings.local.json
+
+# Editor and OS files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-# Build and test output
-dist-ssr
-playwright-report
-test-results
-.env.production
-.env.local

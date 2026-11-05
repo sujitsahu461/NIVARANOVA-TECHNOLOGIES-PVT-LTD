@@ -9,20 +9,22 @@
 
 import { WEB3FORMS_ENDPOINT } from '../lib/enquiry'
 
-/** Read once at build time. Set in `.env.production` (see `.env.example`). */
+/** Read once at build time from `.env` (see `.env.example`) or the host's build settings. */
 const env = import.meta.env
-
-/**
- * Web3Forms access key for the company inbox (nivaranovapvtltd@gmail.com).
- * It can only send email to that inbox, so it is safe in public code.
- * Set to null to switch the form off; it then says plainly that it cannot send.
- */
-const web3formsAccessKey: string | null = '7b111d11-ecfa-4362-96dd-4b04ff5b8c23'
 
 function optionalEnv(value: string | undefined): string | null {
   const trimmed = value?.trim()
   return trimmed ? trimmed : null
 }
+
+/**
+ * Web3Forms access key for the company inbox (nivaranovapvtltd@gmail.com).
+ * Kept out of the repository in VITE_WEB3FORMS_ACCESS_KEY. It still ends up in
+ * the public JavaScript, which is how Web3Forms is designed to work: the key
+ * can only send email to that one inbox. Leave it unset to switch the form
+ * off; it then says plainly that it cannot send.
+ */
+const web3formsAccessKey = optionalEnv(env.VITE_WEB3FORMS_ACCESS_KEY)
 
 export const company = {
   /** Brand used in the wordmark and running text. */
@@ -42,12 +44,10 @@ export const company = {
   /** Provided by the company. A town, not a registered office address. */
   basedIn: 'Gunupur, Odisha, India',
 
-  /** Registration details. Leave null until verified. */
+  /** Registration details. Leave null until verified; each appears in the footer once set. */
   registration: {
     cin: null as string | null,
     gstin: null as string | null,
-    registeredOffice: null as string | null,
-    incorporatedOn: null as string | null,
   },
 
   /** Contact details, provided by the company. Leave null until the mailbox or number is live. */

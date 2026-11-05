@@ -116,7 +116,7 @@ interface SubmitOptions {
  * (access_key, subject, from_name) becomes a line in the email, and `email`
  * is used as the reply-to address, so replying answers the visitor directly.
  */
-export function web3formsBody(enquiry: Enquiry, accessKey: string) {
+function web3formsBody(enquiry: Enquiry, accessKey: string) {
   const clean = normaliseEnquiry(enquiry)
   const typeLabel = enquiryTypes.find((type) => type.value === clean.enquiryType)?.label ?? clean.enquiryType
   return {

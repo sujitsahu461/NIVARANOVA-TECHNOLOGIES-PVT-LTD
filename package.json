@@ -11,8 +11,10 @@
     "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
     "preview": "vite preview --port 4173 --strictPort",
     "test:e2e": "playwright test",
+    "test:security": "npm run audit && npm run build && playwright test security",
+    "audit": "npm audit --audit-level=high",
     "generate:assets": "node scripts/generate-brand-assets.mjs",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run build && npm run test:e2e"
+    "check": "npm run typecheck && npm run lint && npm run test && npm run audit && npm run build && npm run test:e2e"
   },
   "dependencies": {
     "lucide-react": "^1.66.0",

@@ -35,3 +35,31 @@ export const test = base.extend<{ page: Page }>({
 })
 
 export { expect }
+
+export const WEB3FORMS = 'https://api.web3forms.com/submit'
+
+/**
+ * Stands in for Web3Forms so tests never send real email. Returns the JSON
+ * bodies the form posted.
+ */
+export async function fakeWeb3Forms(page: Page, reply: { success: boolean }) {
+  const posted: Array<Record<string, unknown>> = []
+  await page.route(WEB3FORMS, async (route) => {
+    const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, Accept' }
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
+    posted.push(route.request().postDataJSON() as Record<string, unknown>)
+    return route.fulfill({ status: 200, headers: cors, contentType: 'application/json', body: JSON.stringify(reply) })
+  })
+  return posted
+}
+
+/** Fills the contact form with a valid enquiry and waits out the minimum fill time. */
+export async function fillValidEnquiry(page: Page) {
+  await page.getByLabel('Full name').fill('Asha Mishra')
+  await page.getByLabel('Work email').fill('asha@example.org')
+  await page.getByLabel('Organisation (optional)').fill('Example Municipality')
+  await page.getByLabel('Enquiry type').selectOption('civicsetu')
+  await page.getByLabel('Subject').fill('CivicSetu pilot')
+  await page.getByLabel('Message').fill('We would like to understand how a pilot would work for our wards.')
+  await page.waitForTimeout(3100) // past the minimum fill time
+}

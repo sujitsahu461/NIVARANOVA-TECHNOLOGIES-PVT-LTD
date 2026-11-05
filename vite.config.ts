@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { readFileSync } from 'node:fs'
+import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
 
 /**
@@ -29,24 +30,35 @@ function productionHeaders(): Record<string, string> {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  define: {
-    // Fixed at build time so prerendered HTML and the hydrated client agree.
-    __BUILD_YEAR__: JSON.stringify(new Date().getFullYear()),
-  },
-  build: {
-    // Lets the prerender step add <link rel="modulepreload"> for each page's chunk.
-    manifest: true,
-    target: 'es2022',
-  },
-  preview: {
-    headers: productionHeaders(),
-  },
-  test: {
-    environment: 'jsdom',
-    include: ['src/**/*.test.{ts,tsx}'],
-    setupFiles: ['src/test/setup.ts'],
-    css: false,
-  },
+export default defineConfig(({ command, mode, isSsrBuild }) => {
+  // A deploy that forgets the key would ship a contact form that cannot send. Say so once per build.
+  const env = loadEnv(mode, process.cwd(), 'VITE_')
+  if (command === 'build' && !isSsrBuild && !env.VITE_WEB3FORMS_ACCESS_KEY && !env.VITE_CONTACT_ENDPOINT) {
+    // oxlint-disable-next-line no-console -- a build-time notice for whoever deploys
+    console.warn(
+      '\n⚠  Contact form not connected: set VITE_WEB3FORMS_ACCESS_KEY (or VITE_CONTACT_ENDPOINT) in .env or the host build settings.\n',
+    )
+  }
+
+  return {
+    plugins: [react(), tailwindcss()],
+    define: {
+      // Fixed at build time so prerendered HTML and the hydrated client agree.
+      __BUILD_YEAR__: JSON.stringify(new Date().getFullYear()),
+    },
+    build: {
+      // Lets the prerender step add <link rel="modulepreload"> for each page's chunk.
+      manifest: true,
+      target: 'es2022',
+    },
+    preview: {
+      headers: productionHeaders(),
+    },
+    test: {
+      environment: 'jsdom',
+      include: ['src/**/*.test.{ts,tsx}'],
+      setupFiles: ['src/test/setup.ts'],
+      css: false,
+    },
+  }
 })

@@ -31,7 +31,7 @@ interface WordmarkProps {
  * "NIVARANOVA", optionally with the subline. Drawn as SVG text so the name
  * and subline keep the artwork's widths at every size. Size it by height.
  */
-export function Wordmark({ className, subline = false }: WordmarkProps) {
+function Wordmark({ className, subline = false }: WordmarkProps) {
   const nameSize = wordmark.nameCapHeight / wordmark.fontCapHeight
   const sublineSize = wordmark.sublineCapHeight / wordmark.fontCapHeight
   const sublineBaseline = wordmark.nameCapHeight + wordmark.sublineGap + wordmark.sublineCapHeight
