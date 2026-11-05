@@ -41,10 +41,12 @@ export const company = {
     incorporatedOn: null as string | null,
   },
 
-  /** Contact details. Leave null until the mailbox or number is live. */
+  /** Contact details, provided by the company. Leave null until the mailbox or number is live. */
   contact: {
-    email: null as string | null,
-    phone: null as string | null,
+    email: 'nivaranovapvtltd@gmail.com' as string | null,
+    phone: '+91 76568 52710' as string | null,
+    /** Second number, shown under the main one. */
+    phoneAlternative: '+91 82602 35030' as string | null,
   },
 
   /** Public profiles. Leave null until the profile exists. */

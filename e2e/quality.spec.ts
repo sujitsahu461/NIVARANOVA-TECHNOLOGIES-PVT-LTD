@@ -160,11 +160,15 @@ test.describe('SEO and security', () => {
   })
 })
 
+/** The contact details in src/config/company.ts. Any other email or phone number on a page is invented. */
+const suppliedContacts = ['nivaranovapvtltd@gmail.com', '+91 76568 52710', '+91 82602 35030']
+
 test.describe('no fabricated business information', () => {
   test('rendered pages contain no invented contact details or claims', async ({ page }) => {
     for (const { path } of pages) {
       await page.goto(path)
-      const text = await page.locator('body').innerText()
+      const rendered = await page.locator('body').innerText()
+      const text = suppliedContacts.reduce((remaining, value) => remaining.replaceAll(value, ''), rendered)
       expect(text, `${path}: email address`).not.toMatch(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/)
       expect(text, `${path}: phone number`).not.toMatch(/(\+91[\s-]?)?\b[6-9]\d{4}[\s-]?\d{5}\b/)
       expect(text, `${path}: GSTIN`).not.toMatch(/\b\d{2}[A-Z]{5}\d{4}[A-Z]\dZ[A-Z\d]\b/)

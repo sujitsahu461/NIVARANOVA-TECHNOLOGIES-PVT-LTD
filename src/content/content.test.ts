@@ -55,10 +55,14 @@ describe('copy', () => {
     expect(allCopy).not.toMatch(pattern)
   })
 
-  it('keeps unverified registration and contact details empty', () => {
+  it('keeps registration and contact details to the values the company supplied', () => {
     // Update this test deliberately when real, verified values are added.
     expect(company.registration).toEqual({ cin: null, gstin: null, registeredOffice: null, incorporatedOn: null })
-    expect(company.contact).toEqual({ email: null, phone: null })
+    expect(company.contact).toEqual({
+      email: 'nivaranovapvtltd@gmail.com',
+      phone: '+91 76568 52710',
+      phoneAlternative: '+91 82602 35030',
+    })
   })
 
   it('keeps meta descriptions within search-result length', () => {

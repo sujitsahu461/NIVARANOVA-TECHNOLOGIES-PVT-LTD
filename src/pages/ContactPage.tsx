@@ -20,9 +20,17 @@ function ContactLine({ icon, label, children }: { icon: ReactNode; label: string
   )
 }
 
+function PhoneLink({ number }: { number: string }) {
+  return (
+    <a href={`tel:${number.replace(/\s+/g, '')}`} className="font-medium text-teal-strong underline underline-offset-4">
+      {number}
+    </a>
+  )
+}
+
 export default function ContactPage() {
   usePageMeta(routeMeta.contact)
-  const { email, phone } = company.contact
+  const { email, phone, phoneAlternative } = company.contact
 
   return (
     <>
@@ -55,9 +63,16 @@ export default function ContactPage() {
             {(phone || siteConfig.showPlaceholders) && (
               <ContactLine icon={<Phone className="size-5" aria-hidden="true" />} label="Phone">
                 {phone ? (
-                  <a href={`tel:${phone.replace(/\s+/g, '')}`} className="font-medium text-teal-strong underline underline-offset-4">
-                    {phone}
-                  </a>
+                  <span className="block space-y-1">
+                    <span className="block">
+                      <PhoneLink number={phone} />
+                    </span>
+                    {phoneAlternative && (
+                      <span className="block">
+                        <PhoneLink number={phoneAlternative} /> <span className="text-sm">(alternative)</span>
+                      </span>
+                    )}
+                  </span>
                 ) : (
                   <Placeholder label="Business phone" />
                 )}

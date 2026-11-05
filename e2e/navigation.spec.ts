@@ -93,9 +93,12 @@ test.describe('desktop navigation', () => {
   test('footer links all lead to real pages', async ({ page }) => {
     await page.goto('/')
     const footer = page.getByRole('contentinfo')
-    const links = await footer.getByRole('link').evaluateAll((elements) =>
+    const hrefs = await footer.getByRole('link').evaluateAll((elements) =>
       elements.map((element) => element.getAttribute('href') ?? ''),
     )
+    // The email link opens the visitor's mail app, so check its address instead of clicking it.
+    expect(hrefs.filter((href) => href.startsWith('mailto:'))).toEqual(['mailto:nivaranovapvtltd@gmail.com'])
+    const links = hrefs.filter((href) => href.startsWith('/'))
     expect(links.length).toBeGreaterThanOrEqual(7)
     for (const href of links) {
       await page.goto('/')
