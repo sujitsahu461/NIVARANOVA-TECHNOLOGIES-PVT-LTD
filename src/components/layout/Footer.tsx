@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { company, siteConfig } from '../../config/company'
 import { routeMeta } from '../../content/routes'
 import { Container } from '../ui/Container'
-import { Wordmark } from '../ui/Logo'
+import { Logo } from '../ui/Logo'
 import { Placeholder } from '../ui/Placeholder'
 
 const columns = [
@@ -34,7 +34,7 @@ export function Footer() {
       <Container className="py-14 lg:py-16">
         <div className="grid gap-12 lg:grid-cols-12">
           <div className="lg:col-span-5">
-            <Wordmark />
+            <Logo variant="lockup" label="NivaraNova Technologies Private Limited" />
             <p className="mt-5 max-w-sm text-[0.9375rem] leading-relaxed text-muted">{company.description}</p>
             <div className="mt-5 text-[0.9375rem]">
               {contact.email ? (

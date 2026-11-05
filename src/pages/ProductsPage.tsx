@@ -1,7 +1,7 @@
 import { PageHeader } from '../components/sections/PageHeader'
 import { ButtonLink } from '../components/ui/Button'
 import { Container } from '../components/ui/Container'
-import { LogoMark } from '../components/ui/Logo'
+import { Emblem } from '../components/ui/Logo'
 import { civicSetuStatus, civicSetuSummary, complaintCategories } from '../content/civicsetu'
 import { routeMeta } from '../content/routes'
 import { usePageMeta } from '../hooks/usePageMeta'
@@ -55,7 +55,7 @@ export default function ProductsPage() {
         </article>
 
         <div className="mt-16 flex max-w-2xl gap-5">
-          <LogoMark className="size-10 opacity-40" />
+          <Emblem className="mt-1 h-8 w-auto opacity-40" />
           <div>
             <h2 className="text-h3">More products</h2>
             <p className="mt-2 leading-relaxed text-muted">

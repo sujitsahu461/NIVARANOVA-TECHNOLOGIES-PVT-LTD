@@ -5,7 +5,7 @@ import { navItems, routeMeta } from '../../content/routes'
 import { cn } from '../../lib/cn'
 import { ButtonLink } from '../ui/Button'
 import { Container } from '../ui/Container'
-import { Wordmark } from '../ui/Logo'
+import { Logo } from '../ui/Logo'
 
 const desktopLink = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -51,7 +51,7 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-line bg-white">
       <Container className="flex h-16 items-center justify-between gap-6 lg:h-[4.5rem]">
         <Link to="/" className="rounded-sm" aria-label="NivaraNova Technologies, home">
-          <Wordmark />
+          <Logo />
         </Link>
 
         <nav aria-label="Main" className="hidden lg:block">

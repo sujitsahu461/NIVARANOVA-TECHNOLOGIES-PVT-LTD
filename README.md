@@ -24,7 +24,7 @@ For what was built, the test results and the open items before launch, see [HAND
 | `npm run preview` | Serve `dist/` at http://localhost:4173 with the production security headers. |
 | `npm run test:e2e` | Browser tests (Playwright) against the production build. Run `npm run build` first. |
 | `npm run check` | All of the above in order. Run this before every deploy. |
-| `npm run generate:assets` | Re-render `og-image.png`, `logo-512.png` and the PNG icons after changing the logo. |
+| `npm run generate:assets` | Rewrite `favicon.svg` and re-render `og-image.png`, `logo-512.png` and the PNG icons from `src/config/brand.ts` after changing the logo. |
 
 The first time you run the browser tests, install Playwright's browser:
 

@@ -1,14 +1,17 @@
 /**
- * Renders the PNG brand assets in public/ from HTML, using headless Chromium:
- *   og-image.png (1200x630), logo-512.png, apple-touch-icon.png (180), favicon-32.png
+ * Writes the brand assets in public/ from the logo in src/config/brand.ts:
+ *   favicon.svg, and with headless Chromium og-image.png (1200x630),
+ *   logo-512.png, apple-touch-icon.png (180) and favicon-32.png
  *
  * Run after changing the logo or brand copy:  npm run generate:assets
+ * Needs Node 22.18 or later (it imports a .ts file directly).
  * Uses Playwright's Chromium, or the browser at CHROME_PATH if set.
  */
 import { chromium } from '@playwright/test'
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { brandColors, emblem, emblemSvg, wordmark } from '../src/config/brand.ts'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const publicDir = path.join(root, 'public')
@@ -25,30 +28,41 @@ const fontCss = `
   body { -webkit-font-smoothing: antialiased; }
 `
 
-const mark = (size) => `
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="${size}" height="${size}">
-    <rect width="32" height="32" rx="7" fill="#101b2b"/>
-    <path d="M10 23V9l12 14V9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="10" cy="9" r="2.6" fill="#8fd1c9"/>
-    <circle cx="22" cy="23" r="2.6" fill="#8fd1c9"/>
-  </svg>`
+/** The emblem centred in a square, with a transparent background: the favicon. */
+const faviconSvg = () => {
+  const inset = (emblem.width - emblem.height) / 2
+  return emblemSvg().replace(
+    `viewBox="0 0 ${emblem.width} ${emblem.height}"`,
+    `viewBox="0 ${-inset} ${emblem.width} ${emblem.width}"`,
+  )
+}
 
-/** Square icon: the mark with the corner radius removed for platforms that apply their own mask. */
-const squareIcon = (size) => `
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="${size}" height="${size}">
-    <rect width="32" height="32" fill="#101b2b"/>
-    <path d="M10 23V9l12 14V9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="10" cy="9" r="2.4" fill="#8fd1c9"/>
-    <circle cx="22" cy="23" r="2.4" fill="#8fd1c9"/>
+/** The emblem centred on white, for icons that must be square and opaque (Apple, search engines). */
+const squareIcon = (size) => {
+  const width = Math.round(size * 0.76)
+  return `<div style="width:${size}px;height:${size}px;display:grid;place-items:center;background:${brandColors.white}">
+    ${emblemSvg(`width="${width}"`)}
+  </div>`
+}
+
+/** "NIVARANOVA" with its subline, matching src/components/ui/Logo.tsx. */
+const lockupSvg = (height) => {
+  const baseline = wordmark.nameCapHeight + wordmark.sublineGap + wordmark.sublineCapHeight
+  const size = (capHeight) => capHeight / wordmark.fontCapHeight
+  const text = (y, length, capHeight, weight, content) =>
+    `<text x="${wordmark.width / 2}" y="${y}" text-anchor="middle" textLength="${length}" lengthAdjust="spacing" font-size="${size(capHeight)}" font-weight="${weight}">${content}</text>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${wordmark.width} ${baseline}" height="${height}" overflow="visible" fill="${brandColors.black}" font-family="Manrope Variable">
+    ${text(wordmark.nameCapHeight, wordmark.width, wordmark.nameCapHeight, 400, wordmark.name)}
+    ${text(baseline, wordmark.sublineWidth, wordmark.sublineCapHeight, 700, wordmark.subline)}
   </svg>`
+}
 
 const ogImage = `
   <html><head><style>${fontCss}
     body { width: 1200px; height: 630px; background: #f7f9fb; font-family: 'Inter Variable'; color: #101b2b; position: relative; overflow: hidden; }
     .grid { position: absolute; right: -40px; top: -40px; }
     .content { position: absolute; left: 88px; top: 96px; width: 640px; }
-    .brand { display: flex; align-items: center; gap: 22px; }
-    .name { font-family: 'Manrope Variable'; font-weight: 700; font-size: 46px; letter-spacing: -0.02em; }
+    .brand { display: flex; align-items: center; gap: 24px; }
     h1 { margin-top: 64px; font-family: 'Manrope Variable'; font-weight: 600; font-size: 60px; line-height: 1.06; letter-spacing: -0.03em; }
     p { margin-top: 28px; font-size: 26px; line-height: 1.45; color: #536273; }
   </style></head><body>
@@ -70,7 +84,7 @@ const ogImage = `
       <path d="M341 151l6 6 11-12" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <div class="content">
-      <div class="brand">${mark(64)}<span class="name">NivaraNova</span></div>
+      <div class="brand">${emblemSvg('height="76"')}${lockupSvg(54)}</div>
       <h1>Practical software for public-service problems</h1>
       <p>NivaraNova Technologies, Gunupur, Odisha</p>
     </div>
@@ -79,13 +93,22 @@ const ogImage = `
 const iconPage = (svg, size) =>
   `<html><head><style>${fontCss} body { width: ${size}px; height: ${size}px; }</style></head><body>${svg}</body></html>`
 
+await writeFile(path.join(publicDir, 'favicon.svg'), `${faviconSvg()}\n`)
+console.log('generated public/favicon.svg')
+
 const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {})
 try {
   const outputs = [
     { file: 'og-image.png', html: ogImage, width: 1200, height: 630 },
     { file: 'logo-512.png', html: iconPage(squareIcon(512), 512), width: 512, height: 512 },
     { file: 'apple-touch-icon.png', html: iconPage(squareIcon(180), 180), width: 180, height: 180 },
-    { file: 'favicon-32.png', html: iconPage(mark(32), 32), width: 32, height: 32, omitBackground: true },
+    {
+      file: 'favicon-32.png',
+      html: iconPage(faviconSvg().replace('<svg ', '<svg width="32" height="32" '), 32),
+      width: 32,
+      height: 32,
+      omitBackground: true,
+    },
   ]
   for (const output of outputs) {
     const page = await browser.newPage({ viewport: { width: output.width, height: output.height } })
