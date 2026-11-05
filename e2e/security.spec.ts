@@ -93,12 +93,15 @@ function gitIsAvailable(): boolean {
   }
 }
 
-/** Asks git itself which paths the project's .gitignore keeps out, using a throwaway repository. */
-function ignoredByGit(paths: readonly string[]): Record<string, boolean> {
-  const repo = mkdtempSync(path.join(tmpdir(), 'nivaranova-gitignore-'))
+/**
+ * Asks git which paths an ignore file (.gitignore, or .vercelignore, which uses the same rules)
+ * keeps out, using a throwaway repository.
+ */
+function ignoredBy(ignoreFile: string, paths: readonly string[]): Record<string, boolean> {
+  const repo = mkdtempSync(path.join(tmpdir(), 'nivaranova-ignore-'))
   try {
     execFileSync('git', ['init', '-q'], { cwd: repo })
-    copyFileSync(path.join(root, '.gitignore'), path.join(repo, '.gitignore'))
+    copyFileSync(path.join(root, ignoreFile), path.join(repo, '.gitignore'))
     return Object.fromEntries(
       paths.map((file) => {
         try {
@@ -112,6 +115,22 @@ function ignoredByGit(paths: readonly string[]): Record<string, boolean> {
   } finally {
     rmSync(repo, { recursive: true, force: true })
   }
+}
+
+/** Reads a Cloudflare/Netlify `_headers` file into path → header name → value. */
+function parseHeadersFile(text: string): Record<string, Record<string, string>> {
+  const rules: Record<string, Record<string, string>> = {}
+  let current: Record<string, string> | undefined
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim() || line.trimStart().startsWith('#')) continue
+    if (!/^\s/.test(line)) {
+      current = rules[line.trim()] = {}
+      continue
+    }
+    const separator = line.indexOf(':')
+    if (current) current[line.slice(0, separator).trim()] = line.slice(separator + 1).trim()
+  }
+  return rules
 }
 
 // ---------------------------------------------------------------------------
@@ -148,14 +167,47 @@ test.describe('repository', () => {
       'secrets/api.txt',
       '.npmrc',
       '.claude/settings.local.json',
+      '.vercel/project.json',
       'dist/index.html',
       'dist-ssr/entry-server.js',
       'node_modules/react/index.js',
     ]
-    const mustCommit = ['.env.example', '.gitignore', 'package.json', 'public/_headers', 'src/config/company.ts', '.claude/launch.json']
-    const result = ignoredByGit([...mustIgnore, ...mustCommit])
+    const mustCommit = [
+      '.env.example',
+      '.gitignore',
+      '.vercelignore',
+      'vercel.json',
+      'package.json',
+      'public/_headers',
+      'src/config/company.ts',
+      '.claude/launch.json',
+    ]
+    const result = ignoredBy('.gitignore', [...mustIgnore, ...mustCommit])
     expect(mustIgnore.filter((file) => !result[file]), 'should be ignored').toEqual([])
     expect(mustCommit.filter((file) => result[file]), 'should be committed').toEqual([])
+  })
+
+  test('the Vercel CLI never uploads .env files or local build output', () => {
+    test.skip(!gitIsAvailable(), 'git is not installed (it is used to read the ignore rules)')
+    const mustSkip = ['.env', '.env.local', '.env.production', 'node_modules/react/index.js', 'dist/index.html', '.vercel/project.json']
+    const mustUpload = ['.env.example', 'package.json', 'package-lock.json', 'vercel.json', 'src/main.tsx', 'public/_headers']
+    const result = ignoredBy('.vercelignore', [...mustSkip, ...mustUpload])
+    expect(mustSkip.filter((file) => !result[file]), 'should not be uploaded').toEqual([])
+    expect(mustUpload.filter((file) => result[file]), 'should be uploaded').toEqual([])
+  })
+
+  test('vercel.json sends exactly the headers in public/_headers', () => {
+    const fromHeadersFile = parseHeadersFile(readFileSync(path.join(root, 'public/_headers'), 'utf8'))
+    const vercel = JSON.parse(readFileSync(path.join(root, 'vercel.json'), 'utf8')) as {
+      headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }>
+    }
+    const fromVercel = Object.fromEntries(
+      vercel.headers.map((rule) => [
+        rule.source.replace('(.*)', '*'),
+        Object.fromEntries(rule.headers.map((header) => [header.key, header.value])),
+      ]),
+    )
+    expect(fromVercel).toEqual(fromHeadersFile)
   })
 
   test('.env.example is an empty template that documents every variable the site reads', () => {

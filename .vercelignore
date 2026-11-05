@@ -1,0 +1,15 @@
+# Files the Vercel CLI must never upload. Vercel builds from source, so
+# local build output, dependencies and test results are not needed either.
+
+# Environment files can hold keys. Set variables in the Vercel project instead.
+.env
+.env.*
+!.env.example
+
+node_modules
+dist
+dist-ssr
+coverage
+playwright-report
+test-results
+.vercel

@@ -559,7 +559,7 @@ scripts/
   prerender.mjs            Writes the static HTML pages, robots.txt and sitemap.xml
   generate-brand-assets.mjs
 public/
-  _headers                 Security and caching headers (Cloudflare Pages / Netlify format)
+  _headers                 Security and caching headers (Cloudflare Pages / Netlify format; vercel.json repeats them)
   favicon.svg, *.png       Icons and the social sharing image
   theme.js                 Applies a saved dark theme before the page paints
 e2e/                       Playwright browser tests
@@ -577,7 +577,7 @@ flowchart LR
     client --> dist["dist/<br/>HTML pages · assets<br/>robots.txt · sitemap.xml"]
     pre --> dist
     headers["public/_headers<br/>CSP and security headers"] --> dist
-    dist --> host["Static host<br/>Cloudflare Pages · Netlify"]
+    dist --> host["Static host<br/>Vercel · Cloudflare Pages · Netlify"]
 ```
 
 </details>
@@ -681,7 +681,14 @@ The output is static, so hosting can cost nothing. The domain is the only recurr
 - [ ] The host's build settings have `VITE_WEB3FORMS_ACCESS_KEY` (and `VITE_SITE_URL` once the domain is live). `.env` is not uploaded with the repository.
 - [ ] `git status` shows no `.env`, key or credential files about to be committed
 
-**Cloudflare Pages (recommended)**: connect the repository, then set:
+**Vercel (current host)**: everything is in [`vercel.json`](vercel.json): build command, output folder, clean URLs and the security headers. Vercel does not read `_headers`, so `vercel.json` repeats them, and a security test fails if the two files ever differ. `.vercelignore` stops the CLI from uploading `.env` or local build output. In the Vercel project, add `VITE_WEB3FORMS_ACCESS_KEY` (and `VITE_SITE_URL`) under **Settings → Environment Variables**, then redeploy. With the GitHub repository connected, every push to `main` deploys.
+
+```bash
+npx vercel login          # once, in your own browser
+npx vercel --prod         # build on Vercel and publish
+```
+
+**Cloudflare Pages**: connect the repository, then set:
 
 - Build command: `npm run build`
 - Output directory: `dist`
