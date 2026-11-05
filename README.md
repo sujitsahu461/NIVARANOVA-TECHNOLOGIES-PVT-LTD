@@ -91,7 +91,7 @@ To engineer practical, scalable software for real-world problems, starting by gi
 
 ---
 
-## 🖥️ The website
+## 💻 The website
 
 This repository is the company website: eight pages, prerendered to plain HTML, with a light and a dark theme. The screenshots below follow your GitHub theme.
 
@@ -139,7 +139,7 @@ This repository is the company website: eight pages, prerendered to plain HTML, 
 
 ---
 
-## 🏛️ CivicSetu
+## 📣 CivicSetu
 
 **Every civic complaint on one record, from the moment it is reported to the moment it is fixed.**
 
