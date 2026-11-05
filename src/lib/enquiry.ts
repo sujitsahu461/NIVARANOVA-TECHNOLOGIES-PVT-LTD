@@ -98,12 +98,37 @@ export function validateEnquiry(input: Enquiry): EnquiryErrors {
 
 export type SubmitResult = { status: 'sent' } | { status: 'not-configured' } | { status: 'failed' }
 
+/** Web3Forms (https://web3forms.com) turns each enquiry into an email to the inbox its access key belongs to. */
+export const WEB3FORMS_ENDPOINT = 'https://api.web3forms.com/submit'
+
 interface SubmitOptions {
   endpoint: string | null
+  /** Web3Forms access key. Needed only when `endpoint` is Web3Forms. */
+  accessKey?: string | null
   /** Milliseconds between the form appearing and being submitted; lets a server discard bot traffic. */
   elapsedMs: number
   fetchImpl?: typeof fetch
   timeoutMs?: number
+}
+
+/**
+ * The request body for Web3Forms. Every field except the special ones
+ * (access_key, subject, from_name) becomes a line in the email, and `email`
+ * is used as the reply-to address, so replying answers the visitor directly.
+ */
+export function web3formsBody(enquiry: Enquiry, accessKey: string) {
+  const clean = normaliseEnquiry(enquiry)
+  const typeLabel = enquiryTypes.find((type) => type.value === clean.enquiryType)?.label ?? clean.enquiryType
+  return {
+    access_key: accessKey,
+    subject: `New website enquiry: ${clean.subject}`,
+    from_name: 'NivaraNova website',
+    name: clean.fullName,
+    email: clean.workEmail,
+    organisation: clean.organisation || 'Not given',
+    enquiry_type: typeLabel,
+    message: clean.message,
+  }
 }
 
 /** Endpoints must use HTTPS, except a local development server. */
@@ -122,12 +147,22 @@ export function isAllowedEndpoint(endpoint: string): boolean {
  * `failed` without exposing technical details to the visitor.
  */
 export async function submitEnquiry(enquiry: Enquiry, options: SubmitOptions): Promise<SubmitResult> {
-  const { endpoint, elapsedMs, fetchImpl = fetch, timeoutMs = 15000 } = options
+  const { endpoint, accessKey, elapsedMs, fetchImpl = fetch, timeoutMs = 15000 } = options
   if (!endpoint) return { status: 'not-configured' }
   if (!isAllowedEndpoint(endpoint)) {
     console.error('Contact endpoint rejected: it must be an HTTPS URL.')
     return { status: 'not-configured' }
   }
+  const isWeb3Forms = endpoint === WEB3FORMS_ENDPOINT
+  if (isWeb3Forms && !accessKey) {
+    console.error('Contact form: the Web3Forms access key is missing.')
+    return { status: 'not-configured' }
+  }
+
+  const body =
+    isWeb3Forms && accessKey
+      ? web3formsBody(enquiry, accessKey)
+      : { ...normaliseEnquiry(enquiry), meta: { elapsedMs, source: 'website-contact' } }
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -135,12 +170,16 @@ export async function submitEnquiry(enquiry: Enquiry, options: SubmitOptions): P
     const response = await fetchImpl(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ ...normaliseEnquiry(enquiry), meta: { elapsedMs, source: 'website-contact' } }),
+      body: JSON.stringify(body),
       signal: controller.signal,
       credentials: 'omit',
       referrerPolicy: 'strict-origin-when-cross-origin',
     })
-    return response.ok ? { status: 'sent' } : { status: 'failed' }
+    if (!response.ok) return { status: 'failed' }
+    if (!isWeb3Forms) return { status: 'sent' }
+    // Web3Forms confirms delivery with { "success": true }.
+    const result = (await response.json().catch(() => null)) as { success?: unknown } | null
+    return result?.success === true ? { status: 'sent' } : { status: 'failed' }
   } catch {
     return { status: 'failed' }
   } finally {

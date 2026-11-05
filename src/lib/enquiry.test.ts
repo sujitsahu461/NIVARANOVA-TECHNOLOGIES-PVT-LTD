@@ -8,6 +8,7 @@ import {
   normaliseEnquiry,
   submitEnquiry,
   validateEnquiry,
+  WEB3FORMS_ENDPOINT,
 } from './enquiry'
 
 const valid: Enquiry = {
@@ -148,5 +149,54 @@ describe('submitEnquiry', () => {
     const offline = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'))
     expect(await submitEnquiry(valid, { endpoint, elapsedMs: 5000, fetchImpl: rejected })).toEqual({ status: 'failed' })
     expect(await submitEnquiry(valid, { endpoint, elapsedMs: 5000, fetchImpl: offline })).toEqual({ status: 'failed' })
+  })
+})
+
+describe('submitEnquiry with Web3Forms', () => {
+  const endpoint = WEB3FORMS_ENDPOINT
+  const accessKey = 'test-access-key'
+  const success = () => new Response(JSON.stringify({ success: true, message: 'Email sent successfully!' }))
+
+  it('sends a readable email with the access key, and replies go to the visitor', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(success())
+    const result = await submitEnquiry(
+      { ...valid, fullName: '  Asha Mishra ', organisation: '' },
+      { endpoint, accessKey, elapsedMs: 4200, fetchImpl },
+    )
+    expect(result).toEqual({ status: 'sent' })
+    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('https://api.web3forms.com/submit')
+    expect(init.credentials).toBe('omit')
+    expect(JSON.parse(init.body as string)).toEqual({
+      access_key: 'test-access-key',
+      subject: 'New website enquiry: CivicSetu pilot',
+      from_name: 'NivaraNova website',
+      name: 'Asha Mishra',
+      email: 'asha@example.org',
+      organisation: 'Not given',
+      enquiry_type: 'CivicSetu: pilot or demo',
+      message: 'We would like to understand how a pilot would work for our wards.',
+    })
+  })
+
+  it('does not send without an access key', async () => {
+    const fetchImpl = vi.fn()
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    expect(await submitEnquiry(valid, { endpoint, accessKey: null, elapsedMs: 5000, fetchImpl })).toEqual({
+      status: 'not-configured',
+    })
+    expect(fetchImpl).not.toHaveBeenCalled()
+    errorSpy.mockRestore()
+  })
+
+  it('reports failure unless Web3Forms confirms success', async () => {
+    const refused = vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: false }), { status: 200 }))
+    const notJson = vi.fn().mockResolvedValue(new Response('<html>', { status: 200 }))
+    const badKey = vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: false }), { status: 400 }))
+    for (const fetchImpl of [refused, notJson, badKey]) {
+      expect(await submitEnquiry(valid, { endpoint, accessKey, elapsedMs: 5000, fetchImpl })).toEqual({
+        status: 'failed',
+      })
+    }
   })
 })

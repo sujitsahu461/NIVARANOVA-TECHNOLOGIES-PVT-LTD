@@ -5,9 +5,10 @@ import { Placeholder } from '../components/ui/Placeholder'
 import { company, siteConfig } from '../config/company'
 import { routeMeta } from '../content/routes'
 import { usePageMeta } from '../hooks/usePageMeta'
+import { WEB3FORMS_ENDPOINT } from '../lib/enquiry'
 
 /** Date this notice's wording last changed. Update it whenever the text changes. */
-const LAST_UPDATED = '1 November 2026'
+const LAST_UPDATED = '5 November 2026'
 
 function Block({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -53,7 +54,13 @@ export default function PrivacyPage() {
           </Block>
 
           <Block title="Where it goes">
-            {siteConfig.contactEndpoint ? (
+            {siteConfig.contactEndpoint === WEB3FORMS_ENDPOINT ? (
+              <p>
+                When you send the form, your enquiry goes over an encrypted (HTTPS) connection to Web3Forms, a
+                form-to-email service, which delivers it to our company inbox. It is then kept in that inbox so we can
+                reply.
+              </p>
+            ) : siteConfig.contactEndpoint ? (
               <p>Your enquiry is sent over an encrypted (HTTPS) connection to the service we use to receive enquiries.</p>
             ) : (
               <p>

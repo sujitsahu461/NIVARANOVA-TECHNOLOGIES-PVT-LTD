@@ -69,9 +69,11 @@ function Field({ id, label, optional, hint, error, children }: FieldProps) {
 interface ContactFormProps {
   /** HTTPS endpoint that accepts the enquiry as JSON, or null when none is connected. */
   endpoint: string | null
+  /** Web3Forms access key, when the endpoint is Web3Forms. */
+  web3formsKey?: string | null
 }
 
-export function ContactForm({ endpoint }: ContactFormProps) {
+export function ContactForm({ endpoint, web3formsKey = null }: ContactFormProps) {
   const formId = useId()
   const fieldId = (name: keyof Enquiry) => `${formId}-${name}`
 
@@ -150,7 +152,7 @@ export function ContactForm({ endpoint }: ContactFormProps) {
     }
 
     setStatus('submitting')
-    const result = await submitEnquiry(values, { endpoint, elapsedMs })
+    const result = await submitEnquiry(values, { endpoint, accessKey: web3formsKey, elapsedMs })
     setStatus(result.status)
   }
 

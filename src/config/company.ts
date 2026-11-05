@@ -7,8 +7,17 @@
  * then shows a clearly labelled placeholder, or nothing, but never a guess.
  */
 
+import { WEB3FORMS_ENDPOINT } from '../lib/enquiry'
+
 /** Read once at build time. Set in `.env.production` (see `.env.example`). */
 const env = import.meta.env
+
+/**
+ * Web3Forms access key for the company inbox (nivaranovapvtltd@gmail.com).
+ * It can only send email to that inbox, so it is safe in public code.
+ * Set to null to switch the form off; it then says plainly that it cannot send.
+ */
+const web3formsAccessKey: string | null = '7b111d11-ecfa-4362-96dd-4b04ff5b8c23'
 
 function optionalEnv(value: string | undefined): string | null {
   const trimmed = value?.trim()
@@ -65,11 +74,15 @@ export const siteConfig = {
   siteUrl: optionalEnv(env.VITE_SITE_URL)?.replace(/\/+$/, '') ?? null,
 
   /**
-   * HTTPS endpoint that accepts the contact form as JSON (your own API or a
-   * form-delivery service). While null, the form validates input but tells
-   * the visitor plainly that it cannot send messages yet.
+   * Where the contact form sends enquiries. VITE_CONTACT_ENDPOINT (your own
+   * HTTPS API) takes priority; otherwise Web3Forms is used once its access key
+   * is set. While null, the form validates input but tells the visitor
+   * plainly that it cannot send messages yet.
    */
-  contactEndpoint: optionalEnv(env.VITE_CONTACT_ENDPOINT),
+  contactEndpoint: optionalEnv(env.VITE_CONTACT_ENDPOINT) ?? (web3formsAccessKey ? WEB3FORMS_ENDPOINT : null),
+
+  /** Sent with each enquiry when the endpoint is Web3Forms. */
+  contactAccessKey: web3formsAccessKey,
 
   /**
    * Show labelled placeholders (e.g. "Business email: to be added") for

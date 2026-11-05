@@ -78,12 +78,16 @@ Copy `.env.example` to `.env.production`, or set these in your host's build sett
 | Variable | Purpose |
 |---|---|
 | `VITE_SITE_URL` | Final address, e.g. `https://www.example.in`. Turns on canonical URLs, `og:url`, the social image tag and `sitemap.xml`. |
-| `VITE_CONTACT_ENDPOINT` | HTTPS URL that accepts the contact form as JSON. Until it is set, the form says plainly that it cannot send. |
+| `VITE_CONTACT_ENDPOINT` | Optional. Your own HTTPS URL that accepts the contact form as JSON; overrides Web3Forms. See below. |
 | `VITE_SHOW_PLACEHOLDERS` | `false` hides the "to be added" labels for missing details. |
 
 ### Connecting the contact form
 
-The form POSTs JSON to `VITE_CONTACT_ENDPOINT`:
+**Current setup: Web3Forms.** Enquiries are emailed to nivaranovapvtltd@gmail.com through [Web3Forms](https://web3forms.com), a free form-to-email service. The access key lives in `src/config/company.ts` (`web3formsAccessKey`). It is public by design: it can only send mail to the inbox it was created for. To get a new key, enter the inbox address at web3forms.com; the key arrives by email. Replying to an enquiry email replies straight to the visitor.
+
+Web3Forms runs its own spam check. The site adds a hidden honeypot field and a minimum fill time, and validates every field before sending. There is no server-side validation or rate limiting of our own; if spam becomes a problem, move to your own endpoint (below).
+
+**Your own endpoint.** Setting `VITE_CONTACT_ENDPOINT` overrides Web3Forms. The form then POSTs JSON to that address:
 
 ```json
 {
@@ -101,7 +105,7 @@ It treats any 2xx response as sent. The receiving end must:
 3. Allow CORS only from the site's own origin.
 4. Return a generic error message, never internal details.
 
-Then add the endpoint's origin to `connect-src` in `public/_headers`, or the browser will block the request.
+Then put the endpoint's origin in `connect-src` in `public/_headers` (in place of `https://api.web3forms.com`), or the browser will block the request.
 
 Options, cheapest first: a small serverless function on the same host (Cloudflare Pages Functions or Netlify Functions, both free at this volume) that emails the enquiry; a form-delivery service; or an endpoint on the CivicSetu Django backend once it is deployed.
 

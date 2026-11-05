@@ -1,12 +1,41 @@
+import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
+
+const WEB3FORMS = 'https://api.web3forms.com/submit'
+
+/**
+ * Stands in for Web3Forms so tests never send real email. Returns the JSON
+ * bodies the form posted.
+ */
+async function fakeWeb3Forms(page: Page, reply: { success: boolean }) {
+  const posted: Array<Record<string, unknown>> = []
+  await page.route(WEB3FORMS, async (route) => {
+    const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, Accept' }
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
+    posted.push(route.request().postDataJSON() as Record<string, unknown>)
+    return route.fulfill({ status: 200, headers: cors, contentType: 'application/json', body: JSON.stringify(reply) })
+  })
+  return posted
+}
+
+async function fillValidEnquiry(page: Page) {
+  await page.getByLabel('Full name').fill('Asha Mishra')
+  await page.getByLabel('Work email').fill('asha@example.org')
+  await page.getByLabel('Organisation (optional)').fill('Example Municipality')
+  await page.getByLabel('Enquiry type').selectOption('civicsetu')
+  await page.getByLabel('Subject').fill('CivicSetu pilot')
+  await page.getByLabel('Message').fill('We would like to understand how a pilot would work for our wards.')
+  await page.waitForTimeout(3100) // past the minimum fill time
+}
 
 test.describe('contact form', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/contact')
   })
 
-  test('states up front that online enquiries are not connected', async ({ page }) => {
-    await expect(page.getByText('Online enquiries are not connected yet')).toBeVisible()
+  test('is connected, so it does not warn that enquiries cannot be sent', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Contact', level: 1 })).toBeVisible()
+    await expect(page.getByText('Online enquiries are not connected yet')).toHaveCount(0)
   })
 
   test('an empty submission lists every problem and moves focus to the summary', async ({ page }) => {
@@ -29,25 +58,32 @@ test.describe('contact form', () => {
     await expect(page.getByLabel('Work email')).toHaveAttribute('aria-describedby', /error/)
   })
 
-  test('a valid enquiry is not sent, and the visitor is told so', async ({ page }) => {
-    const posts: string[] = []
-    page.on('request', (request) => {
-      if (request.method() !== 'GET') posts.push(request.url())
-    })
-
-    await page.getByLabel('Full name').fill('Asha Mishra')
-    await page.getByLabel('Work email').fill('asha@example.org')
-    await page.getByLabel('Organisation (optional)').fill('Example Municipality')
-    await page.getByLabel('Enquiry type').selectOption('civicsetu')
-    await page.getByLabel('Subject').fill('CivicSetu pilot')
-    await page.getByLabel('Message').fill('We would like to understand how a pilot would work for our wards.')
-    await page.waitForTimeout(3100) // past the minimum fill time
+  test('a valid enquiry is emailed through Web3Forms and the visitor sees it was sent', async ({ page }) => {
+    const posted = await fakeWeb3Forms(page, { success: true })
+    await fillValidEnquiry(page)
     await page.getByRole('button', { name: 'Send enquiry' }).click()
 
-    await expect(page.getByTestId('form-status-not-configured')).toContainText('Your enquiry was not sent')
+    await expect(page.getByRole('heading', { name: 'Enquiry sent' })).toBeFocused()
+    expect(posted).toHaveLength(1)
+    expect(posted[0]).toMatchObject({
+      access_key: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/),
+      subject: 'New website enquiry: CivicSetu pilot',
+      name: 'Asha Mishra',
+      email: 'asha@example.org',
+      organisation: 'Example Municipality',
+      enquiry_type: 'CivicSetu: pilot or demo',
+      message: 'We would like to understand how a pilot would work for our wards.',
+    })
+  })
+
+  test('if Web3Forms does not confirm, the visitor is told and keeps the message', async ({ page }) => {
+    await fakeWeb3Forms(page, { success: false })
+    await fillValidEnquiry(page)
+    await page.getByRole('button', { name: 'Send enquiry' }).click()
+
+    await expect(page.getByText('Your enquiry could not be sent')).toBeVisible()
     await expect(page.getByText('Enquiry sent')).toHaveCount(0)
     await expect(page.getByLabel('Message')).toHaveValue(/pilot would work/)
-    expect(posts).toEqual([])
   })
 
   test('the form can be completed with the keyboard alone', async ({ page }) => {

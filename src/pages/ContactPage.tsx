@@ -41,7 +41,7 @@ export default function ContactPage() {
 
       <Container className="grid gap-14 py-16 lg:grid-cols-12 lg:gap-12 lg:py-20">
         <div className="lg:col-span-7">
-          <ContactForm endpoint={siteConfig.contactEndpoint} />
+          <ContactForm endpoint={siteConfig.contactEndpoint} web3formsKey={siteConfig.contactAccessKey} />
         </div>
 
         <aside aria-labelledby="reach-heading" className="lg:col-span-4 lg:col-start-9">
