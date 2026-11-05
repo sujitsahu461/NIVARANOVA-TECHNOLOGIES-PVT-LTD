@@ -1,8 +1,31 @@
-import { Suspense, useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef, type ReactNode } from 'react'
 import { Outlet, useLocation } from 'react-router'
+import { revealOnEnter } from '../../lib/reveal'
 import { Header } from '../navigation/Header'
 import { ErrorBoundary } from './ErrorBoundary'
 import { Footer } from './Footer'
+
+/**
+ * Once a page has rendered, lets its blocks marked with the "reveal" class
+ * rise into view as they are scrolled to (src/lib/reveal.ts). It remounts
+ * with each page, inside the Suspense boundary, so it runs after a lazily
+ * loaded page has arrived.
+ */
+function ScrollReveal({ children }: { children: ReactNode }) {
+  useEffect(() => {
+    let stop = () => {}
+    // Wait a frame, so a newly opened page has been scrolled to the top first.
+    const frame = requestAnimationFrame(() => {
+      stop = revealOnEnter(document.querySelectorAll<HTMLElement>('main .reveal'))
+    })
+    return () => {
+      cancelAnimationFrame(frame)
+      stop()
+    }
+  }, [])
+
+  return children
+}
 
 /**
  * Page frame: skip link, sticky header, main landmark and footer.
@@ -33,7 +56,7 @@ export function SiteLayout() {
     <div className="flex min-h-dvh flex-col">
       <a
         href="#main"
-        className="sr-only-focusable fixed top-3 left-3 z-50 rounded-md bg-ink px-4 py-3 font-medium text-white"
+        className="sr-only-focusable fixed top-3 left-3 z-50 rounded-md bg-ink px-4 py-3 font-medium text-surface"
       >
         Skip to main content
       </a>
@@ -42,7 +65,9 @@ export function SiteLayout() {
         {/* Keyed by path so an error on one page clears when the visitor navigates away. */}
         <ErrorBoundary key={pathname}>
           <Suspense fallback={<div className="min-h-[60vh]" aria-busy="true" />}>
-            <Outlet />
+            <ScrollReveal>
+              <Outlet />
+            </ScrollReveal>
           </Suspense>
         </ErrorBoundary>
       </main>

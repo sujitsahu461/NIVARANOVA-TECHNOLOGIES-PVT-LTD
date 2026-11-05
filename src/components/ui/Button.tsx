@@ -2,16 +2,19 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { Link, type LinkProps } from 'react-router'
 import { cn } from '../../lib/cn'
 
-type Variant = 'primary' | 'secondary' | 'inverse'
+type Variant = 'primary' | 'secondary' | 'inverse' | 'glass'
 type Size = 'md' | 'lg'
 
 const base =
   'inline-flex items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60'
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-ink text-white hover:bg-deep',
-  secondary: 'border border-line-strong bg-white text-ink hover:border-ink',
-  inverse: 'bg-white text-ink hover:bg-teal-tint',
+  primary: 'bg-ink text-surface hover:bg-deep',
+  secondary: 'border border-line-strong bg-surface text-ink hover:border-ink',
+  /** For the dark closing band, which stays dark in both themes. */
+  inverse: 'bg-white text-night hover:bg-teal-soft',
+  /** Frosted secondary action, for use over a coloured (.aurora) background. */
+  glass: 'glass border-line-strong/60 text-ink hover:border-ink/40 hover:bg-surface/85',
 }
 
 const sizes: Record<Size, string> = {

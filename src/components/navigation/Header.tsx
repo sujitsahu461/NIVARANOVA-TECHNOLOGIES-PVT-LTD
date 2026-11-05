@@ -6,6 +6,7 @@ import { cn } from '../../lib/cn'
 import { ButtonLink } from '../ui/Button'
 import { Container } from '../ui/Container'
 import { Logo } from '../ui/Logo'
+import { ThemeToggle } from '../ui/ThemeToggle'
 
 const desktopLink = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -48,7 +49,7 @@ export function Header() {
   }, [open])
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-white">
+    <header className="glass-bar sticky top-0 z-40 border-b border-line/80">
       <Container className="flex h-16 items-center justify-between gap-6 lg:h-[4.5rem]">
         <Link to="/" className="rounded-sm" aria-label="NivaraNova Technologies, home">
           <Logo />
@@ -66,27 +67,34 @@ export function Header() {
           </ul>
         </nav>
 
-        <div className="hidden lg:block">
-          <ButtonLink to={routeMeta.contact.path}>Get in touch</ButtonLink>
-        </div>
+        <div className="flex items-center gap-1 lg:gap-3">
+          {/* From 640px. Below that the header has no room, so the switch is a row in the menu instead. */}
+          <div className="hidden sm:flex">
+            <ThemeToggle />
+          </div>
 
-        <button
-          ref={toggleRef}
-          type="button"
-          className="-mr-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-[0.9375rem] font-medium text-ink lg:hidden"
-          aria-expanded={open}
-          aria-controls={menuId}
-          onClick={() => setOpen((value) => !value)}
-        >
-          {open ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
-          {open ? 'Close' : 'Menu'}
-        </button>
+          <div className="hidden lg:block">
+            <ButtonLink to={routeMeta.contact.path}>Get in touch</ButtonLink>
+          </div>
+
+          <button
+            ref={toggleRef}
+            type="button"
+            className="-mr-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-[0.9375rem] font-medium text-ink lg:hidden"
+            aria-expanded={open}
+            aria-controls={menuId}
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
+            {open ? 'Close' : 'Menu'}
+          </button>
+        </div>
       </Container>
 
       <div
         id={menuId}
         hidden={!open}
-        className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-line bg-white shadow-[0_24px_48px_-24px_rgb(16_27_43/0.25)] lg:hidden"
+        className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto glass-menu border-b border-line shadow-[0_24px_48px_-24px_rgb(16_27_43/0.25)] lg:hidden"
       >
         <Container className="pt-2 pb-8">
           <nav aria-label="Main">
@@ -100,6 +108,8 @@ export function Header() {
               ))}
             </ul>
           </nav>
+          {/* Phones only: from 640px the switch is in the header bar. */}
+          <ThemeToggle variant="menu" className="sm:hidden" />
           <ButtonLink to={routeMeta.contact.path} size="lg" className="mt-6 w-full">
             Get in touch
           </ButtonLink>

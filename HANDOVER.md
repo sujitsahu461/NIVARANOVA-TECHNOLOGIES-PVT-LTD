@@ -11,8 +11,8 @@ These need a decision or a document only the company has. The site is honest wit
 3. **Privacy notice.** `/privacy` is a short, plain-language draft. It now shows the company email, but still needs a retention period and a review by someone qualified, against the Digital Personal Data Protection Act, 2023.
 4. **Domain.** Set `VITE_SITE_URL` to enable canonical URLs, the social image tag and `sitemap.xml`.
 5. **Brand name casing.** The brief says "NivaraNova", but the project description and company records say "Nivaranova". Pick one and use it everywhere, matching the incorporation documents. The logo (NNT emblem and the NIVARANOVA wordmark, which sidesteps the casing question) is drawn from `src/config/brand.ts`; the names used in text are in `src/config/company.ts`.
-6. **Registration details.** Add CIN, GSTIN, registered office and incorporation date to `src/config/company.ts` once issued. The placeholders vanish automatically.
-7. **Leadership.** The About page has a placeholder. Team listings were not published because the project records still disagree on the roster.
+6. **Registration details.** Add the CIN and GSTIN to `src/config/company.ts` once issued. They appear in the footer, and the footer's CIN placeholder disappears by itself. The registered office and incorporation date fields are still in that file, but the site no longer shows them: the About page's company details section was removed.
+7. **Leadership.** The About page does not list the team. Add a section once the roster is confirmed; the project records still disagree on it.
 8. **Confirm the "no machine learning in V1" claim.** The About page and CivicSetu content say V1 has no ML in the complaint path, which is the documented October decision. The status file still records legacy AI modules and pickled models in the codebase (conflict C3). Before launch, trace the complaint-submission code. If anything still calls the old models, either remove it or change the wording.
 
 ## 2. Decisions that differ from the brief
@@ -98,7 +98,8 @@ Scores on a real host will differ somewhat with network and CDN conditions. Re-r
 - Also set: `frame-ancestors 'none'` and `X-Frame-Options: DENY`, `nosniff`, a strict referrer policy, a restrictive `Permissions-Policy`, COOP, and HSTS without `includeSubDomains`.
 - No secrets anywhere. The three `VITE_` variables are public by design, and `.env.example` warns about this.
 - No `dangerouslySetInnerHTML` anywhere; the linter enforces this. All user input is rendered as text by React.
-- Contact form: client validation, normalisation and control-character stripping; HTTPS-only endpoints; no cookies sent; a 15-second timeout; generic error messages only. Spam protection is a honeypot field plus a minimum fill time, and the elapsed time is sent so the server can apply it too. Nothing is stored in `localStorage`.
+- Contact form: client validation, normalisation and control-character stripping; HTTPS-only endpoints; no cookies sent; a 15-second timeout; generic error messages only. Spam protection is a honeypot field plus a minimum fill time, and the elapsed time is sent so the server can apply it too. Nothing from the form is stored in `localStorage`.
+- Theme switch: stores one value, `light` or `dark`, in `localStorage` under `nivaranova-theme`, and the privacy notice says so. `public/theme.js` reads it before the page paints. It is a separate same-origin file because the CSP blocks inline scripts, and `_headers` caches it for a day.
 - Not yet possible: server-side validation, rate limiting and CORS. They belong to the endpoint you connect; the README lists exactly what it must do.
 
 ## 7. Accessibility notes

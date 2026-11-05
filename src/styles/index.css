@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* dark: utilities follow the theme switch (<html data-theme="dark">), not the operating system. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 /*
  * Self-hosted variable fonts, Latin subset only (SIL OFL 1.1; licences in
  * src/assets/fonts). No third-party font requests.
@@ -34,9 +37,16 @@
 @theme {
   --color-*: initial;
 
+  /*
+   * Colours that change with the theme. These are the light values; the dark
+   * values are on :root[data-theme='dark'] below. Each is named for its role,
+   * so one class works in both themes: bg-surface is the page, text-ink the
+   * text, and text-surface the text on an ink or teal fill.
+   */
+
   /* Ink and structure */
-  --color-ink: #101b2b; /* Midnight Navy: primary text, dark bands */
-  --color-deep: #173b57; /* Deep Blue: secondary structure, links on dark */
+  --color-ink: #101b2b; /* Midnight Navy: primary text and primary buttons */
+  --color-deep: #173b57; /* Deep Blue: secondary structure and icons */
   --color-muted: #536273; /* Slate: secondary text (5.9:1 on paper) */
 
   /* Accent. Teal is decorative only (4.1:1 on white fails AA for body text);
@@ -44,11 +54,10 @@
   --color-teal: #138c83;
   --color-teal-strong: #0e6f68;
   --color-teal-tint: #e7f3f1;
-  --color-teal-soft: #8fd1c9; /* accent on dark backgrounds (9.4:1 on ink) */
 
   /* Ground */
-  --color-white: #ffffff;
-  --color-paper: #f7f9fb; /* Off White */
+  --color-surface: #ffffff; /* the page and its cards */
+  --color-paper: #f7f9fb; /* Off White: section bands */
   --color-mist: #eef2f5;
   --color-line: #dce3ea;
   --color-line-strong: #b9c4cf;
@@ -56,6 +65,16 @@
   /* Feedback */
   --color-danger: #b42318; /* 6.5:1 on white */
   --color-danger-tint: #fdf0ee;
+
+  /* The NIVARANOVA wordmark: the logo's black (src/config/brand.ts), light in the dark theme. */
+  --color-wordmark: #0f0f11;
+
+  /* Colours that stay the same in both themes: the dark closing band and what sits on it. */
+  --color-night: #101b2b; /* dark bands */
+  --color-white: #ffffff; /* text and buttons on dark bands */
+  --color-teal-soft: #8fd1c9; /* accent on dark bands (9.4:1 on night) */
+  --color-blue-soft: #8db8f5; /* the logo's blue, lightened for dark bands (8.4:1 on night) */
+  --color-amber-soft: #f2c46d; /* high priority, on dark bands (10.9:1 on night) */
 
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Manrope Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
@@ -78,33 +97,88 @@
 
   --container-site: 76rem; /* 1216px content width */
   --container-prose: 40rem; /* ~70 characters of body text */
-
-  --animate-route-draw: route-draw 1.6s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both;
-  --animate-node-in: node-in 0.4s ease-out both;
-}
-
-/* Paths that animate set pathLength="1", so dash values are normalised to 0–1. */
-@keyframes route-draw {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes node-in {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
 @layer base {
+  /*
+   * Glass and the colour fields behind it (used by .glass, .aurora and
+   * .glass-orb below). The glows use the logo's blue (#1068e3) and the teal.
+   */
+  :root {
+    color-scheme: light;
+    --glass-fill: rgb(255 255 255 / 0.6);
+    --glass-edge: rgb(255 255 255 / 0.75);
+    --glass-shine: rgb(255 255 255 / 0.85);
+    --glass-shadow: rgb(16 27 43 / 0.3);
+    --glass-bar: rgb(255 255 255 / 0.88);
+    --glass-menu: rgb(255 255 255 / 0.94);
+    --glass-opaque: rgb(255 255 255 / 0.96);
+    --aurora-blue: rgb(16 104 227 / 0.16);
+    --aurora-teal: rgb(19 140 131 / 0.14);
+    --orb-blue: rgb(16 104 227 / 0.55);
+    --orb-blue-fade: rgb(16 104 227 / 0.12);
+    --orb-teal: rgb(19 140 131 / 0.5);
+    --orb-teal-fade: rgb(19 140 131 / 0.1);
+    /* Solution cards: at rest, and lifted toward the visitor. The accent line ends in the logo's blue. */
+    --card-shadow: 0 1px 2px rgb(16 27 43 / 0.05);
+    --card-shadow-lifted: 0 28px 50px -24px rgb(16 27 43 / 0.32), 0 10px 18px -10px rgb(16 27 43 / 0.12);
+    --card-accent-end: #1068e3;
+  }
+
+  /*
+   * The dark theme, switched on by the header's theme button (src/lib/theme.ts)
+   * and, before the page paints, by public/theme.js. Every text colour keeps
+   * WCAG AA (4.5:1) on the backgrounds it is used on, and borders keep 3:1.
+   */
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+    --color-ink: #e7ecf3; /* 15.8:1 on surface */
+    --color-deep: #9fc4ec; /* 8.7:1 on mist */
+    --color-muted: #9aa8bb; /* 6.6:1 on mist */
+    --color-teal: #2fb3a5;
+    --color-teal-strong: #5ed3c3; /* 8.0:1 on teal-tint */
+    --color-teal-tint: #0e2e2c;
+    --color-surface: #0b1220;
+    --color-paper: #111a2a;
+    --color-mist: #172334;
+    --color-line: #243149;
+    --color-line-strong: #5a6b86; /* 3.2:1 on paper */
+    --color-danger: #ff8c7e; /* 7.1:1 on danger-tint */
+    --color-danger-tint: #3b1613;
+    --color-wordmark: #e7ecf3;
+
+    --glass-fill: rgb(17 26 42 / 0.55);
+    --glass-edge: rgb(255 255 255 / 0.09);
+    --glass-shine: rgb(255 255 255 / 0.06);
+    --glass-shadow: rgb(0 0 0 / 0.55);
+    --glass-bar: rgb(11 18 32 / 0.86);
+    --glass-menu: rgb(11 18 32 / 0.95);
+    --glass-opaque: rgb(17 26 42 / 0.97);
+    --aurora-blue: rgb(16 104 227 / 0.2);
+    --aurora-teal: rgb(19 140 131 / 0.18);
+    --orb-blue: rgb(16 104 227 / 0.42);
+    --orb-blue-fade: rgb(16 104 227 / 0.08);
+    --orb-teal: rgb(19 140 131 / 0.4);
+    --orb-teal-fade: rgb(19 140 131 / 0.07);
+    --card-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+    --card-shadow-lifted: 0 30px 56px -24px rgb(0 0 0 / 0.8), 0 16px 44px -26px rgb(47 179 165 / 0.45);
+    --card-accent-end: #4d8ff0;
+  }
+
+  /* While the theme switches, colours change together instead of each element running its own transition. */
+  .theme-switching,
+  .theme-switching *,
+  .theme-switching *::before,
+  .theme-switching *::after {
+    transition: none !important;
+  }
+
+  /* The emblem's black plate would disappear on a dark page, so it gets a faint keyline. */
+  :root[data-theme='dark'] .emblem-plate {
+    stroke: rgb(255 255 255 / 0.22);
+    stroke-width: 8;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -112,7 +186,7 @@
   }
 
   body {
-    @apply bg-white font-sans text-base text-ink antialiased;
+    @apply bg-surface font-sans text-base text-ink antialiased;
     text-rendering: optimizeLegibility;
     font-feature-settings: 'cv11', 'ss01';
   }
@@ -144,6 +218,795 @@
   }
 }
 
+/*
+ * Glass surfaces: frosted panels that let the colour behind them show through.
+ * Glass needs something behind it, so pair it with .aurora (soft colour fields)
+ * or .glass-orb (coloured discs). Every surface falls back to a near-solid fill
+ * where backdrop-filter is unsupported, and to a solid fill for visitors who
+ * ask for less transparency or more contrast. Text on each surface keeps WCAG
+ * AA contrast over the strongest colour that can sit behind it.
+ */
+@layer components {
+  .glass {
+    background-color: var(--glass-fill);
+    border: 1px solid var(--glass-edge);
+    box-shadow:
+      inset 0 1px 0 var(--glass-shine),
+      0 18px 40px -22px var(--glass-shadow);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+  }
+
+  /* On the dark closing band, in both themes. White text keeps 10:1 or better over the strongest glow. */
+  .glass-dark {
+    background-color: rgb(255 255 255 / 0.06);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.1),
+      0 30px 60px -30px rgb(0 0 0 / 0.6);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
+  }
+
+  /*
+   * The sticky header. The blur sits on a ::before layer: a backdrop-filter on
+   * the header itself would make it a backdrop root, and the mobile menu inside
+   * it could then no longer blur the page. The bar is opaque enough (88% in the
+   * light theme, 86% in the dark) that the grey menu links keep AA whatever
+   * scrolls underneath: the dark closing band, or a light button.
+   */
+  .glass-bar {
+    isolation: isolate;
+  }
+  .glass-bar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--glass-bar);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    backdrop-filter: blur(14px) saturate(180%);
+  }
+
+  /* The mobile menu: a reading surface, so it stays nearly opaque. */
+  .glass-menu {
+    background-color: var(--glass-menu);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    backdrop-filter: blur(14px) saturate(180%);
+  }
+
+  /*
+   * Soft colour fields behind glass. Static gradients with no filter blur, so
+   * they cost almost nothing to paint. overflow: clip (not hidden) keeps any
+   * sticky element inside working.
+   */
+  .aurora {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+  }
+  .aurora::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(40rem 28rem at 88% 8%, var(--aurora-blue), transparent 70%),
+      radial-gradient(36rem 26rem at 8% 100%, var(--aurora-teal), transparent 70%);
+  }
+  /* The closing band is dark in both themes, so its glows do not change. */
+  .aurora-dark::before {
+    background:
+      radial-gradient(42rem 30rem at 90% 0%, rgb(16 104 227 / 0.35), transparent 70%),
+      radial-gradient(36rem 26rem at 0% 100%, rgb(19 140 131 / 0.28), transparent 70%);
+  }
+
+  /* Coloured discs placed behind a glass panel so the frosting has something to blur. */
+  .glass-orb {
+    position: absolute;
+    z-index: -1;
+    border-radius: 9999px;
+    pointer-events: none;
+  }
+  .glass-orb-blue {
+    background: radial-gradient(circle at 35% 35%, var(--orb-blue), var(--orb-blue-fade) 70%);
+  }
+  .glass-orb-teal {
+    background: radial-gradient(circle at 60% 40%, var(--orb-teal), var(--orb-teal-fade) 70%);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass,
+    .glass-bar::before,
+    .glass-menu {
+      background-color: var(--glass-opaque);
+    }
+    .glass-dark {
+      background-color: rgb(255 255 255 / 0.1);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .glass,
+    .glass-bar::before,
+    .glass-menu {
+      background-color: var(--color-surface);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .glass {
+      border-color: var(--color-line);
+    }
+    .glass-dark {
+      background-color: var(--color-night);
+      border-color: rgb(255 255 255 / 0.3);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+}
+
+/*
+ * Home page "Where we focus" (src/pages/HomePage.tsx). On phones it is a plain
+ * list. From 736px, the narrowest width the ring and its text fit (it needs
+ * 668px), the five areas sit on a ring, clockwise from the top, at
+ * equal 72° steps, each label outside the ring beside its node, with the
+ * emblem at the centre. The positions are written for exactly five areas
+ * (src/content/focus-areas.ts). The ring keeps equal space above and below
+ * it, so the heading beside it lines up with its centre.
+ */
+@layer components {
+  .focus-orbit-items {
+    border-block: 1px solid var(--color-line);
+  }
+  .focus-orbit-items > li {
+    display: grid;
+    grid-template-columns: 2.75rem 1fr;
+    column-gap: 1.25rem;
+    padding-block: 1.75rem;
+  }
+  .focus-orbit-items > li + li {
+    border-top: 1px solid var(--color-line);
+  }
+  .focus-node {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.5rem;
+    background-color: var(--color-mist);
+    color: var(--color-deep);
+  }
+  .focus-orbit-core {
+    display: none;
+  }
+
+  /* Keep in step with the min-[46rem]: text sizes on the labels in HomePage.tsx. */
+  @media (width >= 46rem) {
+    .focus-orbit {
+      --ring: 14.5rem; /* the ring's diameter */
+      --label: 11.25rem; /* width of each area's text */
+      --node: 2.75rem;
+      --reach: calc(var(--node) / 2 + 1.375rem); /* from a node's centre to its text */
+      position: relative;
+      width: var(--ring);
+      height: var(--ring);
+      margin: 10rem auto; /* room for the labels above and below the ring (they reach about 9rem) */
+    }
+    .focus-orbit::before,
+    .focus-orbit::after {
+      content: '';
+      position: absolute;
+      border-radius: 9999px;
+      pointer-events: none;
+    }
+    .focus-orbit::before {
+      inset: 0;
+      border: 1.5px solid color-mix(in srgb, var(--color-teal) 55%, var(--color-line-strong));
+    }
+    /* An inner orbit, dashed like the streets on the hero map. */
+    .focus-orbit::after {
+      inset: 21%;
+      border: 1px dashed var(--color-line-strong);
+    }
+    .focus-orbit-core {
+      display: block;
+      position: absolute;
+      z-index: 2; /* above the nodes, so on entrance they come out from behind it */
+      left: 50%;
+      top: 50%;
+      height: 2.5rem;
+      width: auto;
+      translate: -50% -50%;
+    }
+
+    .focus-orbit-items {
+      position: absolute;
+      inset: 0;
+      border-block: 0;
+    }
+    /* Each item is a point on the ring; its node and text are placed around that point. */
+    .focus-orbit-items > li {
+      position: absolute;
+      display: block;
+      width: 0;
+      height: 0;
+      padding: 0;
+    }
+    .focus-orbit-items > li + li {
+      border-top: 0;
+    }
+    /* 50% ± 50% × (cos, sin) of each --angle: -90°, -18°, 54°, 126° and 198°. */
+    .focus-orbit-items > li:nth-child(1) {
+      --angle: -90deg;
+      left: 50%;
+      top: 0%;
+    }
+    .focus-orbit-items > li:nth-child(2) {
+      --angle: -18deg;
+      left: 97.553%;
+      top: 34.549%;
+    }
+    .focus-orbit-items > li:nth-child(3) {
+      --angle: 54deg;
+      left: 79.389%;
+      top: 90.451%;
+    }
+    .focus-orbit-items > li:nth-child(4) {
+      --angle: 126deg;
+      left: 20.611%;
+      top: 90.451%;
+    }
+    .focus-orbit-items > li:nth-child(5) {
+      --angle: 198deg;
+      left: 2.447%;
+      top: 34.549%;
+    }
+
+    .focus-node {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 1;
+      border-radius: 9999px;
+      border: 1.5px solid var(--color-teal);
+      background-color: var(--color-surface);
+      box-shadow: 0 0 0 6px var(--color-surface); /* a gap where the node sits on the ring */
+      translate: -50% -50%;
+    }
+
+    .focus-label {
+      position: absolute;
+      width: var(--label);
+    }
+    /* Top: above its node, centred. */
+    .focus-orbit-items > li:nth-child(1) .focus-label {
+      bottom: var(--reach);
+      left: 0;
+      text-align: center;
+      translate: -50% 0;
+    }
+    /* Upper right and upper left: beside their nodes, vertically centred. */
+    .focus-orbit-items > li:nth-child(2) .focus-label {
+      left: var(--reach);
+      top: 0;
+      translate: 0 -50%;
+    }
+    .focus-orbit-items > li:nth-child(5) .focus-label {
+      right: var(--reach);
+      top: 0;
+      text-align: right;
+      translate: 0 -50%;
+    }
+    /* Lower right and lower left: below their nodes, growing away from each other. */
+    .focus-orbit-items > li:nth-child(3) .focus-label {
+      top: calc(var(--node) / 2 + 0.75rem);
+      left: calc(var(--node) / -2);
+    }
+    .focus-orbit-items > li:nth-child(4) .focus-label {
+      top: calc(var(--node) / 2 + 0.75rem);
+      right: calc(var(--node) / -2);
+      text-align: right;
+    }
+  }
+
+  @media (width >= 80rem) {
+    .focus-orbit {
+      --ring: 17rem;
+      --label: 13.75rem;
+      --reach: calc(var(--node) / 2 + 1.625rem);
+    }
+  }
+}
+
+/*
+ * The ring's entrance. src/hooks/useRevealOnEnter.ts sets data-reveal on the
+ * ring: "waiting" until it first scrolls into view, then "play". The five
+ * areas come out from behind the emblem and spiral clockwise into place, a
+ * third of a turn, while the ring grows around them; then their text fades
+ * in. While waiting, every animation is held paused at its first frame. If
+ * the ring is already on screen when the page loads, or the visitor prefers
+ * reduced motion, data-reveal is never set and nothing moves.
+ */
+@media (prefers-reduced-motion: no-preference) and (width >= 46rem) {
+  .focus-orbit[data-reveal] {
+    --sweep: 120deg;
+  }
+  .focus-orbit[data-reveal] .focus-node {
+    --radius: calc(var(--ring) / 2);
+    animation: focus-spiral 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .focus-orbit[data-reveal]::before {
+    animation: focus-ring-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .focus-orbit[data-reveal]::after {
+    animation: focus-ring-turn 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .focus-orbit[data-reveal] .focus-orbit-core {
+    animation: focus-core-in 0.5s ease-out both;
+  }
+  .focus-orbit[data-reveal] .focus-label {
+    animation: focus-label-in 0.45s ease-out 0.7s both;
+  }
+  .focus-orbit[data-reveal='waiting'] .focus-node,
+  .focus-orbit[data-reveal='waiting'] .focus-label,
+  .focus-orbit[data-reveal='waiting'] .focus-orbit-core,
+  .focus-orbit[data-reveal='waiting']::before,
+  .focus-orbit[data-reveal='waiting']::after {
+    animation-play-state: paused;
+  }
+}
+
+/*
+ * Lifting cards: the solutions (src/pages/SolutionsPage.tsx) and the Products
+ * page's role and feature tiles. When the pointer rests on a card, or keyboard focus is inside it, the
+ * card comes forward: it rises and grows a little, its shadow deepens, its edge
+ * turns teal, an accent line draws across its top and the link's arrow nudges
+ * on. Hover only applies on devices with a real pointer, so a tap on a phone
+ * does not leave a card stuck forward. Visitors who prefer reduced motion get
+ * the colour and shadow change without the movement.
+ */
+@layer components {
+  .lift-card {
+    position: relative;
+    overflow: hidden; /* clips the accent line to the rounded corners */
+    border: 1px solid var(--color-line);
+    border-radius: 1rem;
+    background-color: var(--color-paper);
+    box-shadow: var(--card-shadow);
+    transition:
+      box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .lift-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-teal), var(--card-accent-end));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+
+  .lift-card:focus-within {
+    border-color: color-mix(in srgb, var(--color-teal) 60%, var(--color-line));
+    box-shadow: var(--card-shadow-lifted);
+  }
+  .lift-card:focus-within::before {
+    transform: scaleX(1);
+  }
+  @media (hover: hover) {
+    .lift-card:hover {
+      border-color: color-mix(in srgb, var(--color-teal) 60%, var(--color-line));
+      box-shadow: var(--card-shadow-lifted);
+    }
+    .lift-card:hover::before {
+      transform: scaleX(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lift-card {
+      transition:
+        transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .lift-card-arrow {
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .lift-card:focus-within {
+      transform: translateY(-6px) scale(1.01);
+    }
+    .lift-card:focus-within .lift-card-arrow {
+      transform: translateX(4px);
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) {
+    .lift-card:hover {
+      transform: translateY(-6px) scale(1.01);
+    }
+    .lift-card:hover .lift-card-arrow {
+      transform: translateX(4px);
+    }
+  }
+
+  /* The small illustrations inside the Products page's feature tiles. */
+  .tile-media {
+    border: 1px solid var(--color-line);
+    background-color: var(--color-surface);
+  }
+}
+
+/*
+ * Products page hero (src/pages/ProductsPage.tsx and
+ * src/components/sections/ProductShowcase.tsx). The band is dark in both
+ * themes. Behind it: the closing band's blue and teal light, plus a faint
+ * street grid that fades out toward the edges, echoing the hero route map.
+ * In front: the CivicSetu name in a white-to-teal sheen, and an illustrated
+ * product window that sits at an angle on wide screens and follows the mouse.
+ *
+ * When the page opens, the text rises in line by line, the window lifts into
+ * place, the queue and audit log float out in front of it, and the complaint's
+ * timeline ticks through its steps up to "Work in progress", whose marker
+ * pulses three times and stops. Nothing loops. Visitors who prefer reduced
+ * motion see the finished state at once, and the window does not follow the mouse.
+ */
+@layer components {
+  .products-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+    background-size: 3.5rem 3.5rem;
+    background-position: center top;
+    -webkit-mask-image: radial-gradient(ellipse 70% 80% at 70% 40%, black 15%, transparent 75%);
+    mask-image: radial-gradient(ellipse 70% 80% at 70% 40%, black 15%, transparent 75%);
+  }
+
+  .products-title {
+    font-family: var(--font-display);
+    color: var(--color-white);
+    background-image: linear-gradient(100deg, #ffffff 25%, var(--color-teal-soft) 65%, var(--color-blue-soft) 95%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding-bottom: 0.06em; /* keeps descenders inside the painted area */
+  }
+  @media (forced-colors: active), (prefers-contrast: more) {
+    .products-title {
+      background-image: none;
+      -webkit-text-fill-color: currentColor;
+    }
+  }
+
+  /* The illustrated window and its floating panels. */
+  .showcase-panel {
+    border: 1px solid rgb(255 255 255 / 0.12);
+    border-radius: 1rem;
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02)),
+      var(--color-night);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.08),
+      0 40px 80px -32px rgb(0 0 0 / 0.75),
+      0 24px 60px -36px rgb(16 104 227 / 0.45);
+  }
+  .showcase-media {
+    border: 1px solid rgb(255 255 255 / 0.1);
+    background: linear-gradient(135deg, rgb(141 184 245 / 0.18), rgb(143 209 201 / 0.08));
+  }
+
+  /* Timeline: a marker per step, joined by a line that is teal up to the current step. */
+  .showcase-step:not(:last-child)::before,
+  .showcase-step[data-state='done']::after {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 26px;
+    bottom: 0;
+    width: 2px;
+    border-radius: 1px;
+  }
+  .showcase-step:not(:last-child)::before {
+    background-color: rgb(255 255 255 / 0.14);
+  }
+  .showcase-step[data-state='done']::after {
+    background-color: var(--color-teal-soft);
+    transform-origin: top;
+  }
+  .showcase-step[data-state='done'] .showcase-node {
+    background-color: var(--color-teal-soft);
+    color: var(--color-night);
+  }
+  .showcase-step[data-state='active'] .showcase-node {
+    border: 2px solid var(--color-blue-soft);
+  }
+  .showcase-step[data-state='active'] .showcase-node::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background-color: var(--color-blue-soft);
+  }
+  .showcase-step[data-state='todo'] .showcase-node {
+    border: 1.5px dashed rgb(255 255 255 / 0.3);
+  }
+
+  /*
+   * From 1024px the window sits at an angle, with the floating panels in front
+   * of it: the queue over its right edge beside the timeline (whose labels are
+   * short and left-aligned), the audit log hanging below its left corner.
+   */
+  @media (width >= 64rem) {
+    .showcase {
+      perspective: 1600px;
+      padding-bottom: 4.5rem; /* room for the audit log below the window */
+    }
+    .showcase-stage {
+      transform-style: preserve-3d;
+      transform: rotateX(var(--tilt-x, 5deg)) rotateY(var(--tilt-y, -9deg));
+      transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .showcase-float {
+      transform: translateZ(70px);
+    }
+    .showcase-float-audit {
+      transform: translateZ(110px);
+    }
+    .showcase-float-queue {
+      top: 18rem;
+      right: -3rem;
+    }
+    .showcase-float-audit {
+      top: calc(100% - 1.25rem);
+      left: -2.5rem;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-rise {
+    animation: hero-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hero-rise-2 {
+    animation-delay: 0.08s;
+  }
+  .hero-rise-3 {
+    animation-delay: 0.18s;
+  }
+  .hero-rise-4 {
+    animation-delay: 0.3s;
+  }
+  .hero-rise-5 {
+    animation-delay: 0.4s;
+  }
+
+  .showcase-window {
+    animation: showcase-rise 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+  }
+  .showcase-float {
+    animation: showcase-float-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.65s both;
+  }
+  .showcase-float-audit {
+    animation-delay: 0.85s;
+  }
+
+  /* The timeline ticks through its steps once the window is in place. */
+  .showcase-step .showcase-node {
+    animation: showcase-tick 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  }
+  .showcase-step[data-state='done']::after {
+    animation: showcase-line 0.3s ease-out both;
+  }
+  .showcase-step:nth-child(1) .showcase-node {
+    animation-delay: 0.9s;
+  }
+  .showcase-step:nth-child(1)::after {
+    animation-delay: 1.05s;
+  }
+  .showcase-step:nth-child(2) .showcase-node {
+    animation-delay: 1.25s;
+  }
+  .showcase-step:nth-child(2)::after {
+    animation-delay: 1.4s;
+  }
+  .showcase-step:nth-child(3) .showcase-node {
+    animation-delay: 1.6s;
+  }
+  .showcase-step:nth-child(3)::after {
+    animation-delay: 1.75s;
+  }
+  .showcase-step:nth-child(4) .showcase-node {
+    animation-delay: 1.95s;
+  }
+  .showcase-step:nth-child(n + 5) .showcase-node {
+    animation-delay: 2.1s;
+  }
+  .showcase-step[data-state='active'] .showcase-node {
+    animation:
+      showcase-tick 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) 1.95s both,
+      showcase-pulse 1.4s ease-out 2.4s 3;
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    translate: 0 1.25rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes showcase-rise {
+  from {
+    opacity: 0;
+    translate: 0 3rem;
+    scale: 0.96;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+@keyframes showcase-float-in {
+  from {
+    opacity: 0;
+    translate: 0 1.5rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes showcase-tick {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes showcase-line {
+  from {
+    scale: 1 0;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+
+/* A ring that spreads from the current step's marker. */
+@keyframes showcase-pulse {
+  from {
+    box-shadow: 0 0 0 0 rgb(141 184 245 / 0.55);
+  }
+  to {
+    box-shadow: 0 0 0 12px rgb(141 184 245 / 0);
+  }
+}
+
+/*
+ * Scroll reveal, across the site. Blocks with the "reveal" class that start
+ * below the fold wait, faded and 1.5rem low, and rise into place the first time
+ * they scroll into view (src/lib/reveal.ts sets data-reveal; blocks that arrive
+ * together follow each other by 90ms). The ease slows into place, so it reads
+ * as a glide rather than a jump. Content on screen when a page opens, and
+ * everything for visitors who prefer reduced motion, is never hidden.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  /* Only the rise is animated: going into "waiting" happens at once, off screen. */
+  .reveal[data-reveal='play'] {
+    transition:
+      opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+      translate 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal[data-reveal='waiting'] {
+    opacity: 0;
+    translate: 0 1.5rem;
+  }
+}
+
+/* Printing shows everything finished, even what never scrolled into view. */
+@media print {
+  .focus-orbit[data-reveal] .focus-node,
+  .focus-orbit[data-reveal] .focus-label,
+  .focus-orbit[data-reveal] .focus-orbit-core,
+  .focus-orbit[data-reveal]::before,
+  .focus-orbit[data-reveal]::after {
+    animation: none !important;
+  }
+  .reveal[data-reveal] {
+    opacity: 1 !important;
+    translate: none !important;
+  }
+}
+
+/*
+ * Each node sits at its place on the ring. This moves it back to the centre
+ * (the first translate), then out along an arm that turns clockwise from a
+ * third of a turn behind its angle to its angle, while the arm's length grows
+ * from 0 to the ring's radius. The last rotate undoes the arm's, so the icon
+ * stays upright. At the end the movement cancels out exactly.
+ */
+@keyframes focus-spiral {
+  from {
+    opacity: 0;
+    transform: translate(calc(var(--radius) * -1 * cos(var(--angle))), calc(var(--radius) * -1 * sin(var(--angle))))
+      rotate(calc(var(--angle) - var(--sweep))) translateX(0) rotate(calc(var(--sweep) - var(--angle)));
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: translate(calc(var(--radius) * -1 * cos(var(--angle))), calc(var(--radius) * -1 * sin(var(--angle))))
+      rotate(var(--angle)) translateX(var(--radius)) rotate(calc(var(--angle) * -1));
+  }
+}
+
+@keyframes focus-ring-grow {
+  from {
+    opacity: 0;
+    transform: scale(0.15);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* The dashed inner orbit turns clockwise with the areas, so the turn reads on the ring too. */
+@keyframes focus-ring-turn {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(calc(var(--sweep) * -1));
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes focus-core-in {
+  from {
+    opacity: 0.4;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes focus-label-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @layer utilities {
   /* Visually hidden but available to assistive technology */
   .sr-only-focusable:not(:focus):not(:focus-within) {
@@ -151,17 +1014,362 @@
   }
 }
 
-/* Route line in the hero and workflow diagrams: drawn once on load. */
+/*
+ * Theme switch ripple (src/lib/theme-ripple.ts). Going dark, a drop falls on
+ * the switch and the dark theme spreads from it like a ripple on still water;
+ * going back to light, the same plays in reverse. The script clips the page
+ * snapshots itself, so the browser's default cross-fade is turned off.
+ * Browsers without View Transitions, and visitors who prefer reduced motion,
+ * get an instant switch.
+ */
+html.theme-ripple::view-transition-old(root),
+html.theme-ripple::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Back to light: the dark page stays on top while it drains into the switch. */
+html.theme-ripple-drain::view-transition-old(root) {
+  z-index: 1;
+}
+
+/*
+ * The rings: their own transition layer, drawn above both snapshots. They
+ * always sit on the dark side of the wavefront, so they are light teal.
+ */
+.theme-ripple-layer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  fill: none;
+  stroke: var(--color-teal-soft);
+  /* Light catching the crests. */
+  filter: drop-shadow(0 0 3px rgb(143 209 201 / 0.5));
+  view-transition-name: theme-ripple;
+}
+
+html.theme-ripple::view-transition-group(theme-ripple),
+html.theme-ripple::view-transition-old(theme-ripple),
+html.theme-ripple::view-transition-new(theme-ripple) {
+  animation: none;
+}
+
+/* The drop: a bead of teal with a glint, centred on the switch. */
+.theme-drop {
+  position: fixed;
+  z-index: 60;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin: -0.375rem 0 0 -0.375rem;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.75) 0 18%, transparent 24%),
+    var(--color-teal);
+  pointer-events: none;
+}
+
+/*
+ * Hero route map: the "Dispatch" sequence (src/components/sections/RouteMap.tsx).
+ * One complaint travels the map once, as soon as the page paints:
+ *
+ *   0–410 ms      Reported: the pin rings in and its label appears
+ *   450–1300 ms   Leg 1: the complaint travels to the junction, the route drawing in behind it
+ *   1240–1880 ms  Routing: the node lands; Drainage and Water supply sketch out and withdraw
+ *   1900–2800 ms  Leg 2: the complaint continues on the Roads route
+ *   2720–3550 ms  Resolved: stamped, the tick draws, a ring closes as the citizen confirms the fix
+ *
+ * Nothing loops. The rules outside the media query are the resting state,
+ * which is also the final frame: route drawn, every node and label shown,
+ * branches and the moving complaint hidden. Visitors who prefer reduced
+ * motion see only that. Paths that animate set pathLength="1", so their dash
+ * values run from 0 to 1.
+ */
+.route-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.route-complaint,
+.route-branch-tag {
+  opacity: 0;
+}
+
+.route-branch {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .route-path {
     stroke-dasharray: 1;
-    animation: var(--animate-route-draw);
+    animation:
+      route-line-leg-1 850ms linear 450ms both,
+      route-line-leg-2 900ms linear 1900ms forwards;
   }
 
-  .route-node {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: var(--animate-node-in);
+  .route-complaint {
+    animation:
+      route-fade-in 100ms linear 350ms forwards,
+      route-leg-1 850ms linear 450ms both,
+      route-leg-2 900ms linear 1900ms forwards,
+      route-fade-out 100ms linear 2700ms forwards;
+  }
+
+  .route-reported-ring {
+    stroke-dasharray: 1;
+    animation: route-draw 300ms cubic-bezier(0.3, 0, 0.2, 1) both;
+  }
+
+  .route-reported-dot {
+    animation: route-land 200ms ease-out 100ms both;
+  }
+
+  .route-routed {
+    animation: route-land 240ms cubic-bezier(0.2, 0.8, 0.2, 1) 1240ms both;
+  }
+
+  .route-resolved {
+    animation: route-stamp 220ms cubic-bezier(0.2, 0.8, 0.2, 1) 2720ms both;
+  }
+
+  .route-tick {
+    stroke-dasharray: 1;
+    animation: route-draw 260ms cubic-bezier(0.3, 0, 0.2, 1) 2820ms both;
+  }
+
+  .route-loop {
+    stroke-dasharray: 1;
+    animation: route-draw 600ms cubic-bezier(0.65, 0, 0.35, 1) 2950ms both;
+  }
+
+  .route-label {
+    animation: route-label-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .route-label-reported {
+    animation-delay: 150ms;
+  }
+
+  .route-label-routed {
+    animation-delay: 1450ms;
+  }
+
+  .route-label-resolved {
+    animation-delay: 2860ms;
+  }
+
+  .route-branch-left {
+    animation: route-branch-left 530ms linear 1350ms both;
+  }
+
+  .route-branch-up {
+    animation: route-branch-up 470ms linear 1410ms both;
+  }
+
+  .route-branch-tag-left {
+    animation: route-tag-left 530ms linear 1350ms both;
+  }
+
+  .route-branch-tag-up {
+    animation: route-tag-up 470ms linear 1410ms both;
+  }
+}
+
+/*
+ * The complaint keeps a constant speed around corners. Each leg speeds up over
+ * its first street and slows down over its last, using exact quadratic curves
+ * (y = x² and y = 1 − (1 − x)²). A quadratic street ends or starts at twice its
+ * average speed, so it gets twice the time of a constant-speed street of the
+ * same length; the keyframe percentages are each street's share of that time.
+ *   Leg 1: streets of 70, 130 and 110 units, so 140 : 130 : 220 of 490
+ *   Leg 2: streets of 160 and 178 units, so 320 : 356 of 676
+ * The route line runs on the same keyframes, so it always ends under the
+ * complaint. Its dash offsets are 1 minus the distance travelled out of 648.
+ */
+@keyframes route-leg-1 {
+  0% {
+    transform: translate(130px, 410px);
+    animation-timing-function: cubic-bezier(0.3333, 0, 0.6667, 0.3333);
+  }
+  28.571% {
+    transform: translate(130px, 340px);
+    animation-timing-function: linear;
+  }
+  55.102% {
+    transform: translate(260px, 340px);
+    animation-timing-function: cubic-bezier(0.3333, 0.6667, 0.6667, 1);
+  }
+  100% {
+    transform: translate(260px, 230px);
+  }
+}
+
+@keyframes route-leg-2 {
+  0% {
+    transform: translate(260px, 230px);
+    animation-timing-function: cubic-bezier(0.3333, 0, 0.6667, 0.3333);
+  }
+  47.337% {
+    transform: translate(420px, 230px);
+    animation-timing-function: cubic-bezier(0.3333, 0.6667, 0.6667, 1);
+  }
+  100% {
+    transform: translate(420px, 52px);
+  }
+}
+
+@keyframes route-line-leg-1 {
+  0% {
+    stroke-dashoffset: 1;
+    animation-timing-function: cubic-bezier(0.3333, 0, 0.6667, 0.3333);
+  }
+  28.571% {
+    stroke-dashoffset: 0.891975;
+    animation-timing-function: linear;
+  }
+  55.102% {
+    stroke-dashoffset: 0.691358;
+    animation-timing-function: cubic-bezier(0.3333, 0.6667, 0.6667, 1);
+  }
+  100% {
+    stroke-dashoffset: 0.521605;
+  }
+}
+
+@keyframes route-line-leg-2 {
+  0% {
+    stroke-dashoffset: 0.521605;
+    animation-timing-function: cubic-bezier(0.3333, 0, 0.6667, 0.3333);
+  }
+  47.337% {
+    stroke-dashoffset: 0.274691;
+    animation-timing-function: cubic-bezier(0.3333, 0.6667, 0.6667, 1);
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Branches draw out from the junction in 220 ms, hold, then withdraw into it over the last 200 ms. */
+@keyframes route-branch-left {
+  0% {
+    stroke-dashoffset: 1;
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  41.509% {
+    stroke-dashoffset: 0;
+    animation-timing-function: linear;
+  }
+  62.264% {
+    stroke-dashoffset: 0;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.8, 0.4);
+  }
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes route-branch-up {
+  0% {
+    stroke-dashoffset: 1;
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  46.809% {
+    stroke-dashoffset: 0;
+    animation-timing-function: linear;
+  }
+  57.447% {
+    stroke-dashoffset: 0;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.8, 0.4);
+  }
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+
+/* Branch names fade in over 200 ms and out over the last 200 ms. */
+@keyframes route-tag-left {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  37.736%,
+  62.264% {
+    opacity: 1;
+  }
+}
+
+@keyframes route-tag-up {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  42.553%,
+  57.447% {
+    opacity: 1;
+  }
+}
+
+@keyframes route-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes route-land {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Pressed down like a stamp: starts slightly large and settles, with no bounce. */
+@keyframes route-stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes route-label-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes route-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 

@@ -21,8 +21,67 @@ export const civicSetuStatus = [
   { label: 'Interface languages', value: 'English, Odia and Hindi' },
 ] as const
 
+/** The same status, in three short lines for the Products page. Keep in step with civicSetuStatus. */
+export const civicSetuSnapshot = [
+  'Version 1 in internal testing',
+  'Not deployed yet',
+  'Looking for a first pilot partner',
+] as const
+
 export const civicSetuSummary =
   'A civic grievance management platform that connects citizens with the departments responsible for fixing problems, and keeps a record of every step.'
+
+export const civicSetuTagline =
+  'Every civic complaint on one record, from the moment it is reported to the moment it is fixed.'
+
+/** Before and after, for the Products page. Drawn from civicSetuProblem and civicSetuSolution. */
+export const civicSetuShift = {
+  before: {
+    channels: ['Phone calls', 'Counter visits', 'Paper registers', 'Messaging groups'],
+    note: 'Complaints are hard to route and hard to follow up, and the person who reported one rarely hears what happened to it.',
+  },
+  after: [
+    'One record for every complaint',
+    'Sent to the department responsible',
+    'Followed with a tracking code',
+    'Closed with a resolution note',
+    'Confirmed by the citizen',
+    'Every change logged',
+  ],
+} as const
+
+/** Who uses CivicSetu and what each role can do. Drawn from the citizen and authority workflows. */
+export const civicSetuRoles = [
+  {
+    role: 'Citizens',
+    lead: 'Report a problem with evidence, then follow it until it is fixed.',
+    points: [
+      'Category, description and exact location',
+      'Photos, a voice note or a short video',
+      'A tracking code and a timeline of every action',
+      'A say in whether the problem was really fixed',
+    ],
+  },
+  {
+    role: 'Officers',
+    lead: 'A clear queue of the complaints that belong to their department.',
+    points: [
+      'Only their own department’s complaints',
+      'Assignment to the person responsible',
+      'A status update and note at every step',
+      'A resolution note the citizen can read',
+    ],
+  },
+  {
+    role: 'Administrators',
+    lead: 'The whole picture, and the rules that keep complaints moving.',
+    points: [
+      'Departments, users and roles',
+      'Category-to-department routing rules',
+      'An audit log of every change',
+    ],
+  },
+] as const
 
 export const civicSetuOverview = [
   'CivicSetu handles one workflow end to end: a public complaint, from the moment a citizen reports it to the moment they confirm it has been fixed.',

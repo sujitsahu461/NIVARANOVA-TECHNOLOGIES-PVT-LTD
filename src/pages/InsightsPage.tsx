@@ -20,7 +20,7 @@ export default function InsightsPage() {
 
       <Container className="py-16 lg:py-24">
         {insights.length === 0 ? (
-          <div className="mx-auto max-w-xl rounded-xl border border-dashed border-line-strong px-6 py-14 text-center sm:px-12">
+          <div className="reveal mx-auto max-w-xl rounded-xl border border-dashed border-line-strong px-6 py-14 text-center sm:px-12">
             <span className="mx-auto flex size-12 items-center justify-center rounded-lg bg-mist text-deep">
               <NotebookPen className="size-6" aria-hidden="true" strokeWidth={1.75} />
             </span>

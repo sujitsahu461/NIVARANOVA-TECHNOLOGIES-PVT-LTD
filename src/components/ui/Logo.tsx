@@ -14,7 +14,7 @@ export function Emblem({ className }: EmblemProps) {
       aria-hidden="true"
       focusable="false"
     >
-      <path d={emblem.plate} fill={brandColors.black} />
+      <path d={emblem.plate} fill={brandColors.black} className="emblem-plate" />
       <path d={emblem.letters} fill={brandColors.white} />
       <path d={emblem.stem} fill={brandColors.blue} />
     </svg>
@@ -40,8 +40,7 @@ export function Wordmark({ className, subline = false }: WordmarkProps) {
   return (
     <svg
       viewBox={`0 0 ${wordmark.width} ${height}`}
-      className={cn('shrink-0 overflow-visible font-display', className)}
-      fill={brandColors.black}
+      className={cn('shrink-0 overflow-visible fill-wordmark font-display', className)}
       aria-hidden="true"
       focusable="false"
     >

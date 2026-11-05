@@ -31,6 +31,9 @@ test.describe('responsive layout', () => {
 test.describe('accessibility', () => {
   for (const { path } of [...pages, { path: '/this-page-does-not-exist' }]) {
     test(`${path} has no axe violations (WCAG 2.2 AA)`, async ({ page }) => {
+      // Reduced motion shows every block at once; otherwise content below the fold waits faded
+      // for its scroll reveal, and axe would skip checking it.
+      await page.emulateMedia({ reducedMotion: 'reduce' })
       await page.goto(path)
       const results = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
@@ -56,11 +59,107 @@ test.describe('accessibility', () => {
     expect(results.violations.map((v) => `${v.id}: ${v.help}`)).toEqual([])
   })
 
-  test('the route animation is switched off for visitors who prefer reduced motion', async ({ page }) => {
+  test('the hero map plays once and settles within four seconds', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.goto('/')
+    const timings = await page.getByRole('img', { name: /town map/ }).evaluate((map) =>
+      map.getAnimations({ subtree: true }).map((animation) => {
+        const timing = animation.effect?.getComputedTiming()
+        return { iterations: timing?.iterations, endTime: Number(timing?.endTime) }
+      }),
+    )
+    expect(timings.length, 'the map should animate').toBeGreaterThan(10)
+    for (const timing of timings) {
+      // Moving content that runs past five seconds needs a pause control (WCAG 2.2.2).
+      expect(timing.iterations, 'no part of the map may loop').toBe(1)
+      expect(timing.endTime, 'the sequence must finish within 4 s').toBeLessThanOrEqual(4000)
+    }
+  })
+
+  test('visitors who prefer reduced motion see the finished map, with nothing moving', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/')
-    const animation = await page.locator('.route-path').evaluate((el) => getComputedStyle(el).animationName)
-    expect(animation).toBe('none')
+    const state = await page.getByRole('img', { name: /town map/ }).evaluate((map) => {
+      const style = (selector: string) => getComputedStyle(map.querySelector(selector) ?? map)
+      return {
+        animations: map.getAnimations({ subtree: true }).length,
+        route: style('.route-path').strokeDasharray,
+        complaint: style('.route-complaint').opacity,
+        branchName: style('.route-branch-tag').opacity,
+        resolved: style('.route-resolved').opacity,
+      }
+    })
+    expect(state).toEqual({ animations: 0, route: 'none', complaint: '0', branchName: '0', resolved: '1' })
+  })
+
+  test('the focus ring waits until it is scrolled to, then turns into place and settles', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/')
+    const orbit = page.locator('.focus-orbit')
+    await expect(orbit).toHaveAttribute('data-reveal', 'waiting')
+
+    await orbit.scrollIntoViewIfNeeded()
+    await expect(orbit).toHaveAttribute('data-reveal', 'play')
+    await expect
+      .poll(() => orbit.evaluate((el) => el.getAnimations({ subtree: true }).every((a) => a.playState === 'finished')))
+      .toBe(true)
+
+    // Settled exactly where it belongs: the first area at the top of the ring, its text showing.
+    const ring = await orbit.boundingBox()
+    const first = await page.locator('.focus-node').first().boundingBox()
+    if (!ring || !first) throw new Error('The focus ring has no position')
+    expect(first.x + first.width / 2).toBeCloseTo(ring.x + ring.width / 2, 0)
+    expect(first.y + first.height / 2).toBeCloseTo(ring.y, 0)
+    expect(await page.locator('.focus-label').first().evaluate((el) => getComputedStyle(el).opacity)).toBe('1')
+  })
+
+  test('visitors who prefer reduced motion see the focus ring already in place', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/')
+    await expect(page.locator('.focus-orbit')).not.toHaveAttribute('data-reveal')
+  })
+
+  test('content below the fold rises into view as it is scrolled to, and what was on screen never hides', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/about')
+    const blocks = page.locator('main .reveal')
+    const last = blocks.last()
+    await expect(last).toHaveAttribute('data-reveal', 'waiting')
+    // Nothing that was on screen when the page opened is waiting.
+    const hiddenOnScreen = await blocks.evaluateAll((elements) =>
+      elements.filter((el) => {
+        const box = el.getBoundingClientRect()
+        return el.getAttribute('data-reveal') === 'waiting' && box.top < innerHeight && box.bottom > 0
+      }).length,
+    )
+    expect(hiddenOnScreen).toBe(0)
+
+    await last.scrollIntoViewIfNeeded()
+    await expect(last).toHaveAttribute('data-reveal', 'play')
+    await expect.poll(() => last.evaluate((el) => getComputedStyle(el).opacity)).toBe('1')
+  })
+
+  test('a page opened from the menu reveals its content as it is scrolled to', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/')
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Solutions' }).click()
+    await expect(page).toHaveURL(/\/solutions$/)
+    const last = page.locator('main .reveal').last()
+    await expect(last).toHaveAttribute('data-reveal', 'waiting')
+    await last.scrollIntoViewIfNeeded()
+    await expect(last).toHaveAttribute('data-reveal', 'play')
+  })
+
+  test('visitors who prefer reduced motion see every block straight away', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    for (const path of ['/', '/about', '/solutions', '/products/civicsetu']) {
+      await page.goto(path)
+      await expect(page.locator('main .reveal').first()).toBeAttached()
+      expect(await page.locator('main [data-reveal]').count(), path).toBe(0)
+    }
   })
 })
 

@@ -29,7 +29,7 @@ export const routeMeta = {
     path: '/products',
     title: 'Products',
     description:
-      'Products in development at NivaraNova Technologies, with a plain account of where each one stands.',
+      'Products in development at NivaraNova Technologies, starting with CivicSetu, a civic grievance management platform.',
   },
   civicsetu: {
     path: '/products/civicsetu',

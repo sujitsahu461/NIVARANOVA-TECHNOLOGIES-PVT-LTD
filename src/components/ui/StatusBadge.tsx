@@ -6,7 +6,7 @@ import { cn } from '../../lib/cn'
 const styles: Record<CapabilityStatus, string> = {
   tested: 'border-teal-strong/30 bg-teal-tint text-teal-strong',
   implemented: 'border-deep/25 bg-mist text-deep',
-  planned: 'border-dashed border-line-strong bg-white text-muted',
+  planned: 'border-dashed border-line-strong bg-surface text-muted',
 }
 
 const icons = {

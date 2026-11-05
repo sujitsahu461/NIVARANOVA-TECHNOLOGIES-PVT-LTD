@@ -51,8 +51,8 @@ src/
     navigation/            Header and mobile menu
     sections/              Larger reusable blocks (page header, workflow steps, contact form, hero map…)
     ui/                    Small building blocks (button, logo, status badge, placeholder)
-  lib/                     Contact form rules and submission, helpers
-  styles/index.css         Design tokens (colours, fonts, type scale) and base styles
+  lib/                     Contact form rules and submission, light and dark themes, helpers
+  styles/index.css         Design tokens (colours for both themes, fonts, type scale) and base styles
   assets/fonts/            Self-hosted Inter and Manrope (Latin subset, SIL OFL)
   entry-server.tsx         Build-time entry used only for prerendering
 scripts/
@@ -61,6 +61,7 @@ scripts/
 public/
   _headers                 Security and caching headers (Cloudflare Pages / Netlify format)
   favicon.svg, *.png       Icons and the social sharing image
+  theme.js                 Applies a saved dark theme before the page paints
 e2e/                       Playwright browser tests
 ```
 
@@ -69,7 +70,7 @@ e2e/                       Playwright browser tests
 - **Add verified company details** (email, phone, CIN, GSTIN, registered office): fill in `src/config/company.ts`. The "to be added" placeholders disappear by themselves. One unit test checks these fields are still empty, so update it in the same change; that keeps the edit deliberate.
 - **Change CivicSetu's status or a capability**: edit `src/content/civicsetu.ts`. Every capability carries an `evidence` note. A unit test fails if something is marked `tested` without test evidence, or if an AI feature is marked anything other than `planned`.
 - **Publish an article**: add an entry to `src/content/insights.ts`, dated the day it goes live. It gets its own page at `/insights/<slug>` and is added to the sitemap automatically.
-- **Change colours or fonts**: `src/styles/index.css`. Tailwind's default palette is switched off, so only the tokens defined there can be used.
+- **Change colours or fonts**: `src/styles/index.css`. Tailwind's default palette is switched off, so only the tokens defined there can be used. Each colour has a light value in `@theme` and a dark value under `:root[data-theme='dark']`; set both, and check text keeps 4.5:1 contrast in each. Colours are named for their role (`bg-surface` is the page, `text-ink` the text), so one class works in both themes. Only `night`, `white` and `teal-soft` stay fixed, for the dark closing band.
 
 ## Configuration
 

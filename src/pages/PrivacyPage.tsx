@@ -44,6 +44,10 @@ export default function PrivacyPage() {
               This website does not use cookies, analytics or advertising trackers. The only personal information it
               handles is what you type into the contact form: your name, work email, organisation and message.
             </p>
+            <p>
+              If you switch the site to dark mode, your browser saves that one setting in its local storage, so the
+              next page opens the same way. It stays on your device, says nothing about you, and is never sent to us.
+            </p>
           </Block>
 
           <Block title="Why we use it">

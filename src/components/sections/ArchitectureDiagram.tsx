@@ -15,7 +15,7 @@ export function ArchitectureDiagram() {
               {index > 0 && (
                 <span aria-hidden="true" className="ml-8 block h-6 w-0.5 rounded-full bg-teal/50" />
               )}
-              <div className="rounded-lg border border-deep/25 bg-white p-5">
+              <div className="rounded-lg border border-deep/25 bg-surface p-5">
                 <h3 className="font-display text-[1.0625rem] font-semibold">{layer.layer}</h3>
                 <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-muted">{layer.detail}</p>
               </div>

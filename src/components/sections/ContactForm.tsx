@@ -25,7 +25,7 @@ const fieldOrder: Array<keyof Enquiry> = ['fullName', 'workEmail', 'organisation
 
 const controlClasses = (hasError: boolean) =>
   cn(
-    'block w-full rounded-md border bg-white px-3.5 py-2.5 text-base text-ink transition-colors',
+    'block w-full rounded-md border bg-surface px-3.5 py-2.5 text-base text-ink transition-colors',
     'placeholder:text-muted/70 focus:border-ink',
     hasError ? 'border-danger' : 'border-line-strong hover:border-muted',
   )

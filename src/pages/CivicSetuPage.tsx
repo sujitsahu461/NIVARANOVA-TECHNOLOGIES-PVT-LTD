@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react'
 import { ArchitectureDiagram } from '../components/sections/ArchitectureDiagram'
+import { CapabilityShowcase, CapabilityStatusCounts } from '../components/sections/CapabilityShowcase'
 import { ClosingCta } from '../components/sections/ClosingCta'
 import { WorkflowSteps } from '../components/sections/WorkflowSteps'
 import { Container } from '../components/ui/Container'
-import { StatusBadge } from '../components/ui/StatusBadge'
 import {
   authorityWorkflow,
-  capabilities,
   citizenWorkflow,
   civicSetuOverview,
   civicSetuProblem,
@@ -14,8 +13,6 @@ import {
   civicSetuStatus,
   civicSetuSummary,
   roadmap,
-  statusCopy,
-  statusOrder,
 } from '../content/civicsetu'
 import { routeMeta } from '../content/routes'
 import { usePageMeta } from '../hooks/usePageMeta'
@@ -42,13 +39,13 @@ function Section({ id, title, intro, children, className }: SectionProps) {
   return (
     <section id={id} aria-labelledby={`${id}-heading`} className={cn('border-t border-line', className)}>
       <Container className="py-20 lg:py-24">
-        <div className="max-w-prose">
+        <div className="reveal max-w-prose">
           <h2 id={`${id}-heading`} className="text-h2">
             {title}
           </h2>
           {intro && <p className="mt-5 text-lead text-muted">{intro}</p>}
         </div>
-        <div className="mt-12">{children}</div>
+        <div className="reveal mt-12">{children}</div>
       </Container>
     </section>
   )
@@ -67,7 +64,7 @@ export default function CivicSetuPage() {
             <p className="mt-6 max-w-prose text-lead text-muted">{civicSetuSummary}</p>
           </div>
           <div className="lg:col-span-5">
-            <div className="rounded-lg border border-line bg-white p-6">
+            <div className="rounded-lg border border-line bg-surface p-6">
               <h2 className="text-h3">Current status</h2>
               <dl className="mt-5 space-y-4">
                 {civicSetuStatus.map((item) => (
@@ -80,7 +77,7 @@ export default function CivicSetuPage() {
             </div>
           </div>
         </Container>
-        <div className="border-t border-line bg-white">
+        <div className="border-t border-line bg-surface">
           <Container>
             <nav aria-label="On this page" className="-mx-1 overflow-x-auto">
               <ul className="flex min-w-max gap-1 py-3">
@@ -147,32 +144,24 @@ export default function CivicSetuPage() {
         </div>
       </Section>
 
-      <Section
-        id="capabilities"
-        title="Capabilities"
-        intro="Each capability is labelled by how far it has progressed. Planned features are not available yet."
-      >
-        <div className="grid gap-12 lg:grid-cols-3 lg:gap-10">
-          {statusOrder.map((status) => {
-            const items = capabilities.filter((capability) => capability.status === status)
-            return (
-              <div key={status}>
-                <h3 className="sr-only">{statusCopy[status].label}</h3>
-                <StatusBadge status={status} />
-                <p className="mt-3 text-[0.9375rem] leading-relaxed text-muted">{statusCopy[status].explanation}</p>
-                <ul className="mt-6 divide-y divide-line border-t border-line">
-                  {items.map((capability) => (
-                    <li key={capability.name} className="py-4">
-                      <p className="font-semibold text-ink">{capability.name}</p>
-                      <p className="mt-1 text-[0.9375rem] leading-relaxed text-muted">{capability.detail}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )
-          })}
-        </div>
-      </Section>
+      {/* Not a <Section>: its tiles reveal one by one, so the block around them must not reveal as well. */}
+      <section id="capabilities" aria-labelledby="capabilities-heading" className="border-t border-line">
+        <Container className="py-20 lg:py-24">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-end">
+            <div className="reveal max-w-prose lg:col-span-7">
+              <h2 id="capabilities-heading" className="text-h2">
+                Capabilities
+              </h2>
+              <p className="mt-5 text-lead text-muted">
+                Each feature carries its real status. Tested means covered by the version 1 test suite; nothing has
+                run in a live deployment yet.
+              </p>
+            </div>
+            <CapabilityStatusCounts className="reveal lg:col-span-5 lg:justify-end" />
+          </div>
+          <CapabilityShowcase className="mt-12 lg:mt-14" />
+        </Container>
+      </section>
 
       <Section
         id="architecture"
