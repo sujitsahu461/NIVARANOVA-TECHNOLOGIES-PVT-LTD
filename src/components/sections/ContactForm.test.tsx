@@ -2,7 +2,14 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { openEmailApp } from '../../lib/email-draft'
 import { ContactForm } from './ContactForm'
+
+// Opening a mailto: link would try to navigate jsdom; record the call instead.
+vi.mock('../../lib/email-draft', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../lib/email-draft')>()),
+  openEmailApp: vi.fn(),
+}))
 
 function renderForm(endpoint: string | null, initialPath = '/contact') {
   return render(
@@ -28,12 +35,14 @@ function advanceClock(ms: number) {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.mocked(openEmailApp).mockClear()
 })
 
 describe('ContactForm', () => {
-  it('says plainly when no delivery service is connected', () => {
+  it('says that sending opens the email app when no delivery service is connected', () => {
     renderForm(null)
-    expect(screen.getByText('Online enquiries are not connected yet')).toBeInTheDocument()
+    expect(screen.getByText(/opens your email app with your message ready to send/)).toBeInTheDocument()
+    expect(screen.queryByText(/not connected/)).not.toBeInTheDocument()
   })
 
   it('lists every problem and marks fields invalid when submitted empty', async () => {
@@ -58,17 +67,28 @@ describe('ContactForm', () => {
     expect(screen.getByLabelText('Full name')).not.toHaveAttribute('aria-invalid')
   })
 
-  it('does not pretend to send when no endpoint is configured', async () => {
+  it('opens the visitor’s email app with the enquiry when no endpoint is configured', async () => {
     const user = userEvent.setup()
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
     renderForm(null)
     await fillValidForm(user)
-    advanceClock(10_000)
     await user.click(screen.getByRole('button', { name: 'Send enquiry' }))
 
-    expect(await screen.findByText('Your enquiry was not sent')).toBeInTheDocument()
-    expect(screen.queryByText('Enquiry sent')).not.toBeInTheDocument()
+    expect(openEmailApp).toHaveBeenCalledTimes(1)
+    const href = vi.mocked(openEmailApp).mock.calls[0]?.[0] ?? ''
+    expect(href).toMatch(/^mailto:nivaranovapvtltd@gmail\.com\?subject=Website%20enquiry%3A%20CivicSetu%20pilot&body=/)
+    expect(decodeURIComponent(href)).toContain('Name: Asha Mishra\r\nEmail: asha@example.org')
+    expect(decodeURIComponent(href)).toContain('We would like to understand how a pilot would work.')
     expect(fetchSpy).not.toHaveBeenCalled()
+
+    // If no mail app opened, the visitor has other ways to send the same email.
+    expect(await screen.findByText('Finish sending in your email app')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open email app' })).toHaveAttribute('href', href)
+    expect(screen.getByRole('link', { name: /Open in Gmail/ })).toHaveAttribute(
+      'href',
+      expect.stringMatching(/^https:\/\/mail\.google\.com\/mail\/\?view=cm&fs=1&to=nivaranovapvtltd%40gmail\.com&/),
+    )
+    expect(screen.queryByText('Enquiry sent')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Full name')).toHaveValue('Asha Mishra')
   })
 
@@ -103,6 +123,12 @@ describe('ContactForm', () => {
 
     expect(await screen.findByText('Your enquiry could not be sent')).toBeInTheDocument()
     expect(screen.getByLabelText('Subject')).toHaveValue('CivicSetu pilot')
+    // Email is offered as a way round the failure, but never opened without the visitor choosing it.
+    expect(screen.getByRole('link', { name: 'Open email app' })).toHaveAttribute(
+      'href',
+      expect.stringMatching(/^mailto:nivaranovapvtltd@gmail\.com\?/),
+    )
+    expect(openEmailApp).not.toHaveBeenCalled()
   })
 
   it('silently drops submissions that fill the hidden honeypot field', async () => {

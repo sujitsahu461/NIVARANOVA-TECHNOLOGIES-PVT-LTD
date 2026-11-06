@@ -34,6 +34,7 @@ const pageSources = {
   [routeMeta.insights.path]: 'src/pages/InsightsPage.tsx',
   [routeMeta.contact.path]: 'src/pages/ContactPage.tsx',
   [routeMeta.privacy.path]: 'src/pages/PrivacyPage.tsx',
+  [routeMeta.terms.path]: 'src/pages/TermsPage.tsx',
 }
 
 const pages = [
@@ -45,6 +46,7 @@ const pages = [
   routeMeta.insights,
   routeMeta.contact,
   routeMeta.privacy,
+  routeMeta.terms,
   ...insights.map((article) => ({
     path: `${routeMeta.insights.path}/${article.slug}`,
     title: article.title,

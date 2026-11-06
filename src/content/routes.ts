@@ -50,8 +50,15 @@ export const routeMeta = {
   },
   privacy: {
     path: '/privacy',
-    title: 'Privacy notice',
-    description: 'How the NivaraNova Technologies website handles information sent through its contact form.',
+    title: 'Privacy policy',
+    description:
+      'How NivaraNova Technologies collects, uses and protects personal data sent through this website, by email, phone or WhatsApp.',
+  },
+  terms: {
+    path: '/terms',
+    title: 'Terms and conditions',
+    description:
+      'The terms for using the NivaraNova Technologies website, including copyright in its content and what you may do with it.',
   },
   notFound: {
     path: '/404',

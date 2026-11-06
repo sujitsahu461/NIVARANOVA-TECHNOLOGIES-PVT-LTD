@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { ContactForm } from '../components/sections/ContactForm'
 import { PageHeader } from '../components/sections/PageHeader'
 import { Container } from '../components/ui/Container'
+import { PhoneChooser } from '../components/ui/PhoneChooser'
 import { Placeholder } from '../components/ui/Placeholder'
 import { company, siteConfig } from '../config/company'
 import { routeMeta } from '../content/routes'
@@ -17,14 +18,6 @@ function ContactLine({ icon, label, children }: { icon: ReactNode; label: string
       </dt>
       <dd className="mt-1 pl-[1.875rem] text-muted">{children}</dd>
     </div>
-  )
-}
-
-function PhoneLink({ number }: { number: string }) {
-  return (
-    <a href={`tel:${number.replace(/\s+/g, '')}`} className="font-medium text-teal-strong underline underline-offset-4">
-      {number}
-    </a>
   )
 }
 
@@ -65,13 +58,14 @@ export default function ContactPage() {
                 {phone ? (
                   <span className="block space-y-1">
                     <span className="block">
-                      <PhoneLink number={phone} />
+                      <PhoneChooser number={phone} />
                     </span>
                     {phoneAlternative && (
                       <span className="block">
-                        <PhoneLink number={phoneAlternative} /> <span className="text-sm">(alternative)</span>
+                        <PhoneChooser number={phoneAlternative} /> <span className="text-sm">(alternative)</span>
                       </span>
                     )}
+                    <span className="block text-sm">Tap a number to call or chat on WhatsApp.</span>
                   </span>
                 ) : (
                   <Placeholder label="Business phone" />

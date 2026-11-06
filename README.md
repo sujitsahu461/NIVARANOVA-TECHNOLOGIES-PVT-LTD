@@ -133,7 +133,8 @@ This repository is the company website: eight pages, prerendered to plain HTML, 
 | `/products` and `/products/civicsetu` | CivicSetu in full: workflows, capabilities, architecture, roadmap |
 | `/insights` | Articles (published only when a real one is ready) |
 | `/contact` | Enquiry form, email and phone |
-| `/privacy` | Plain-language privacy notice |
+| `/privacy` | Privacy policy, written against the DPDP Act, 2023 |
+| `/terms` | Terms and conditions, including copyright |
 
 <p align="right"><a href="#readme-top">↑ Back to top</a></p>
 
@@ -483,7 +484,7 @@ npm run dev             # http://localhost:5173
 ```
 
 > [!TIP]
-> Without a key in `.env` the site still runs. The contact form then tells visitors plainly that it cannot send yet, instead of pretending to.
+> Without a key in `.env` the site still runs. The contact form then opens the visitor's own email app with the enquiry ready to send to the company inbox, with Gmail and copy-the-message fallbacks.
 
 It is a **static site**: React and TypeScript, built with Vite, with every page prerendered to plain HTML at build time. There is no server to run and no database. Any static host can serve the `dist/` folder.
 
@@ -608,7 +609,7 @@ Copy `.env.example` to `.env` for local work, and set the same variables in your
 | Variable | Purpose |
 |---|---|
 | `VITE_SITE_URL` | Final address, e.g. `https://www.example.in`. Turns on canonical URLs, `og:url`, the social image tag and `sitemap.xml`. |
-| `VITE_WEB3FORMS_ACCESS_KEY` | Web3Forms key for the company inbox. Without it (or `VITE_CONTACT_ENDPOINT`) the form says it cannot send, and the build prints a warning. |
+| `VITE_WEB3FORMS_ACCESS_KEY` | Web3Forms key for the company inbox. Without it (or `VITE_CONTACT_ENDPOINT`) the form opens the visitor's email app instead, and the build prints a warning. |
 | `VITE_CONTACT_ENDPOINT` | Optional. Your own HTTPS URL that accepts the contact form as JSON; overrides Web3Forms. See *Contact form*. |
 | `VITE_SHOW_PLACEHOLDERS` | `false` hides the "to be added" labels for missing details. |
 

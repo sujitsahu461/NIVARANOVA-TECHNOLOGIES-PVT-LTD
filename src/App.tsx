@@ -14,6 +14,7 @@ const InsightsPage = lazy(() => import('./pages/InsightsPage'))
 const InsightArticlePage = lazy(() => import('./pages/InsightArticlePage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
+const TermsPage = lazy(() => import('./pages/TermsPage'))
 
 /** Route table shared by the browser entry and the prerender entry. */
 export function App() {
@@ -29,6 +30,7 @@ export function App() {
         <Route path="insights/:slug" element={<InsightArticlePage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="terms" element={<TermsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

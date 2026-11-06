@@ -9,7 +9,8 @@ export const pages = [
   { path: '/products/civicsetu', h1: 'CivicSetu' },
   { path: '/insights', h1: 'Insights' },
   { path: '/contact', h1: 'Contact' },
-  { path: '/privacy', h1: 'Privacy notice' },
+  { path: '/privacy', h1: 'Privacy policy' },
+  { path: '/terms', h1: 'Terms and conditions' },
 ] as const
 
 export const viewportWidths = [360, 390, 430, 768, 1024, 1440, 1920] as const

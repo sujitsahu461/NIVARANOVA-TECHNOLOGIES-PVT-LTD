@@ -1,8 +1,16 @@
-import { AlertCircle, CheckCircle2, Info } from 'lucide-react'
+import { AlertCircle, Check, CheckCircle2, Copy, ExternalLink, Mail } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { company } from '../../config/company'
 import { routeMeta } from '../../content/routes'
+import {
+  emailAsText,
+  enquiryEmail,
+  gmailComposeHref,
+  mailtoHref,
+  openEmailApp,
+  type EmailDraft,
+} from '../../lib/email-draft'
 import {
   emptyEnquiry,
   enquiryTypes,
@@ -19,7 +27,50 @@ import { Button } from '../ui/Button'
 /** Submissions faster than this are almost certainly automated. */
 const MIN_FILL_TIME_MS = 3000
 
-type FormStatus = 'idle' | 'submitting' | 'too-fast' | 'not-configured' | 'failed' | 'sent'
+/** `email-app`: the enquiry was handed to the visitor's mail app, because no delivery service is connected. */
+type FormStatus = 'idle' | 'submitting' | 'too-fast' | 'email-app' | 'failed' | 'sent'
+
+const emailOptionClasses =
+  'inline-flex min-h-11 items-center gap-2 rounded-md border border-line-strong bg-surface px-3.5 text-[0.9375rem] font-medium text-ink transition-colors hover:border-ink'
+
+/** Other ways to send the same email, for when the mail app did not open or the delivery service failed. */
+function EmailOptions({ draft }: { draft: EmailDraft }) {
+  const [copied, setCopied] = useState(false)
+  const canCopy = typeof navigator !== 'undefined' && Boolean(navigator.clipboard)
+
+  async function copyEmail() {
+    try {
+      await navigator.clipboard.writeText(emailAsText(draft))
+      setCopied(true)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      <a href={mailtoHref(draft)} className={emailOptionClasses}>
+        <Mail className="size-4 shrink-0" aria-hidden="true" />
+        Open email app
+      </a>
+      <a href={gmailComposeHref(draft)} target="_blank" rel="noopener noreferrer" className={emailOptionClasses}>
+        <ExternalLink className="size-4 shrink-0" aria-hidden="true" />
+        Open in Gmail
+        <span className="sr-only"> (opens in a new tab)</span>
+      </a>
+      {canCopy && (
+        <button type="button" onClick={copyEmail} className={emailOptionClasses}>
+          {copied ? (
+            <Check className="size-4 shrink-0 text-teal-strong" aria-hidden="true" />
+          ) : (
+            <Copy className="size-4 shrink-0" aria-hidden="true" />
+          )}
+          {copied ? 'Copied' : 'Copy message'}
+        </button>
+      )}
+    </div>
+  )
+}
 
 const fieldOrder: Array<keyof Enquiry> = ['fullName', 'workEmail', 'organisation', 'enquiryType', 'subject', 'message']
 
@@ -85,6 +136,7 @@ export function ContactForm({ endpoint, web3formsKey = null }: ContactFormProps)
   const summaryRef = useRef<HTMLDivElement>(null)
   const sentRef = useRef<HTMLHeadingElement>(null)
   const [searchParams] = useSearchParams()
+  const inbox = company.contact.email
 
   useEffect(() => {
     startedAt.current = Date.now()
@@ -145,6 +197,17 @@ export function ContactForm({ endpoint, web3formsKey = null }: ContactFormProps)
       return
     }
 
+    // No delivery service: hand the enquiry to the visitor's own mail app, addressed to the company inbox.
+    if (!endpoint) {
+      if (!inbox) {
+        setStatus('failed')
+        return
+      }
+      setStatus('email-app')
+      openEmailApp(mailtoHref(enquiryEmail(values, inbox)))
+      return
+    }
+
     const elapsedMs = Date.now() - startedAt.current
     if (elapsedMs < MIN_FILL_TIME_MS) {
       setStatus('too-fast')
@@ -153,7 +216,7 @@ export function ContactForm({ endpoint, web3formsKey = null }: ContactFormProps)
 
     setStatus('submitting')
     const result = await submitEnquiry(values, { endpoint, accessKey: web3formsKey, elapsedMs })
-    setStatus(result.status)
+    setStatus(result.status === 'not-configured' ? 'failed' : result.status)
   }
 
   function focusField(name: keyof Enquiry) {
@@ -176,29 +239,6 @@ export function ContactForm({ endpoint, web3formsKey = null }: ContactFormProps)
 
   return (
     <div>
-      {!endpoint && (
-        <div className="mb-8 flex gap-3 rounded-lg border border-line-strong bg-paper p-5" data-testid="form-not-connected">
-          <Info className="mt-0.5 size-5 shrink-0 text-deep" aria-hidden="true" />
-          <div className="text-[0.9375rem] leading-relaxed">
-            <p className="font-semibold text-ink">Online enquiries are not connected yet</p>
-            <p className="mt-1 text-muted">
-              You can fill in the form to check it, but it cannot send messages until we connect a delivery
-              service.
-              {company.contact.email && (
-                <>
-                  {' '}
-                  Please email{' '}
-                  <a href={`mailto:${company.contact.email}`} className="font-medium text-teal-strong underline">
-                    {company.contact.email}
-                  </a>{' '}
-                  instead.
-                </>
-              )}
-            </p>
-          </div>
-        </div>
-      )}
-
       {errorList.length > 0 && (
         <div
           ref={summaryRef}
@@ -372,34 +412,37 @@ export function ContactForm({ endpoint, web3formsKey = null }: ContactFormProps)
               That was quick. Please check your message, then select Send enquiry again.
             </p>
           )}
-          {status === 'not-configured' && (
+          {status === 'email-app' && inbox && (
             <div
-              className="rounded-lg border-2 border-deep/40 bg-mist p-4 text-[0.9375rem]"
-              data-testid="form-status-not-configured"
+              className="rounded-lg border border-teal-strong/30 bg-teal-tint p-4 text-[0.9375rem]"
+              data-testid="form-status-email-app"
             >
-              <p className="font-semibold text-ink">Your enquiry was not sent</p>
+              <p className="font-semibold text-ink">Finish sending in your email app</p>
               <p className="mt-1 text-muted">
-                Your details are valid, but online enquiries are not connected yet, so nothing was sent. Your message
-                is still in the form.
+                Your enquiry is ready in a new email to {inbox}. Press Send in your email app to deliver it. If no
+                email app opened, use one of these instead:
               </p>
+              <EmailOptions draft={enquiryEmail(values, inbox)} />
             </div>
           )}
           {status === 'failed' && (
             <div role="alert" className="rounded-lg border-2 border-danger bg-danger-tint p-4 text-[0.9375rem]">
               <p className="font-semibold text-danger">Your enquiry could not be sent</p>
               <p className="mt-1 text-ink">
-                Something went wrong on our side. Your message is still in the form; please try again in a few
-                minutes.
+                Something went wrong on our side. Your message is still in the form.{' '}
+                {inbox ? 'Try again in a few minutes, or send it by email instead:' : 'Please try again in a few minutes.'}
               </p>
+              {inbox && <EmailOptions draft={enquiryEmail(values, inbox)} />}
             </div>
           )}
         </div>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p id={`${formId}-privacy`} className="text-sm text-muted">
+            {!endpoint && inbox && <>Selecting Send enquiry opens your email app with your message ready to send. </>}
             We use these details only to reply to you.{' '}
             <Link to={routeMeta.privacy.path} className="font-medium text-teal-strong underline underline-offset-2">
-              Privacy notice
+              Privacy policy
             </Link>
           </p>
           <Button type="submit" size="lg" disabled={status === 'submitting'} className="sm:shrink-0">

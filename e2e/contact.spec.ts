@@ -56,6 +56,25 @@ test.describe('contact form', () => {
     await expect(page.getByText('Your enquiry could not be sent')).toBeVisible()
     await expect(page.getByText('Enquiry sent')).toHaveCount(0)
     await expect(page.getByLabel('Message')).toHaveValue(/pilot would work/)
+    // The same enquiry can still go by email.
+    await expect(page.getByRole('link', { name: 'Open email app' })).toHaveAttribute(
+      'href',
+      /^mailto:nivaranovapvtltd@gmail\.com\?subject=Website%20enquiry%3A%20CivicSetu%20pilot&body=/,
+    )
+  })
+
+  test('tapping a phone number offers a call or a WhatsApp chat', async ({ page }) => {
+    const number = page.getByRole('main').getByRole('button', { name: '+91 76568 52710, call or WhatsApp' })
+    await number.click()
+    await expect(number).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.getByRole('link', { name: /^Call/ })).toHaveAttribute('href', 'tel:+917656852710')
+    await expect(page.getByRole('link', { name: /^WhatsApp/ })).toHaveAttribute(
+      'href',
+      /^https:\/\/wa\.me\/917656852710\?text=/,
+    )
+    await page.keyboard.press('Escape')
+    await expect(number).toHaveAttribute('aria-expanded', 'false')
+    await expect(number).toBeFocused()
   })
 
   test('the form can be completed with the keyboard alone', async ({ page }) => {
@@ -73,7 +92,7 @@ test.describe('contact form', () => {
     await expect(page.getByLabel('Message')).toBeFocused()
     // Next come the privacy link and the button; the hidden spam trap is skipped.
     await page.keyboard.press('Tab')
-    await expect(page.getByRole('link', { name: 'Privacy notice' }).first()).toBeFocused()
+    await expect(page.getByRole('link', { name: 'Privacy policy' }).first()).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(page.getByRole('button', { name: 'Send enquiry' })).toBeFocused()
   })

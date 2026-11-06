@@ -3,6 +3,7 @@ import { company, siteConfig } from '../../config/company'
 import { routeMeta } from '../../content/routes'
 import { Container } from '../ui/Container'
 import { Logo } from '../ui/Logo'
+import { PhoneChooser } from '../ui/PhoneChooser'
 import { Placeholder } from '../ui/Placeholder'
 
 const columns = [
@@ -36,13 +37,23 @@ export function Footer() {
           <div className="lg:col-span-5">
             <Logo variant="lockup" label="NivaraNova Technologies Private Limited" />
             <p className="mt-5 max-w-sm text-[0.9375rem] leading-relaxed text-muted">{company.description}</p>
-            <div className="mt-5 text-[0.9375rem]">
-              {contact.email ? (
-                <a href={`mailto:${contact.email}`} className="font-medium text-teal-strong underline-offset-4 hover:underline">
-                  {contact.email}
-                </a>
-              ) : (
-                <Placeholder label="Business email" />
+            <div className="mt-5 space-y-1 text-[0.9375rem]">
+              <div>
+                {contact.email ? (
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="font-medium text-teal-strong underline-offset-4 hover:underline"
+                  >
+                    {contact.email}
+                  </a>
+                ) : (
+                  <Placeholder label="Business email" />
+                )}
+              </div>
+              {contact.phone && (
+                <div>
+                  <PhoneChooser number={contact.phone} placement="up" />
+                </div>
               )}
             </div>
           </div>
@@ -67,14 +78,19 @@ export function Footer() {
 
         <div className="mt-14 flex flex-col gap-4 border-t border-line pt-6 text-sm text-muted md:flex-row md:items-center md:justify-between">
           <p>
-            © {siteConfig.buildYear} {company.legalName}
+            © {siteConfig.buildYear} {company.legalName.replace(/\.$/, '')}. All rights reserved.
           </p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             {registration.cin ? <span>CIN {registration.cin}</span> : null}
             {registration.gstin ? <span>GSTIN {registration.gstin}</span> : null}
-            <Link to={routeMeta.privacy.path} className="transition-colors hover:text-ink">
-              Privacy notice
-            </Link>
+            <nav aria-label="Legal" className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <Link to={routeMeta.privacy.path} className="transition-colors hover:text-ink">
+                Privacy policy
+              </Link>
+              <Link to={routeMeta.terms.path} className="transition-colors hover:text-ink">
+                Terms and conditions
+              </Link>
+            </nav>
           </div>
         </div>
       </Container>
