@@ -5,6 +5,7 @@ import { PageHeader } from '../components/sections/PageHeader'
 import { Container } from '../components/ui/Container'
 import { PhoneChooser } from '../components/ui/PhoneChooser'
 import { Placeholder } from '../components/ui/Placeholder'
+import { SocialLinks } from '../components/ui/SocialLinks'
 import { company, siteConfig } from '../config/company'
 import { routeMeta } from '../content/routes'
 import { usePageMeta } from '../hooks/usePageMeta'
@@ -77,7 +78,13 @@ export default function ContactPage() {
             </ContactLine>
           </dl>
 
-          <div className="mt-12 border-t border-line pt-8">
+          <div className="mt-10 border-t border-line pt-8">
+            <h2 className="text-h3">Connect with us</h2>
+            <p className="mt-2 leading-relaxed text-muted">Follow our work, or message us directly.</p>
+            <SocialLinks variant="buttons" className="mt-5" />
+          </div>
+
+          <div className="mt-10 border-t border-line pt-8">
             <h2 className="text-h3">What helps us reply well</h2>
             <ul className="mt-4 space-y-3 leading-relaxed text-muted">
               <li>The problem you are trying to solve, in your own words.</li>

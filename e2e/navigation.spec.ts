@@ -96,8 +96,10 @@ test.describe('desktop navigation', () => {
     const hrefs = await footer.getByRole('link').evaluateAll((elements) =>
       elements.map((element) => element.getAttribute('href') ?? ''),
     )
-    // The email link opens the visitor's mail app, so check its address instead of clicking it.
-    expect(hrefs.filter((href) => href.startsWith('mailto:'))).toEqual(['mailto:nivaranovapvtltd@gmail.com'])
+    // Email links open the visitor's mail app, so check their address instead of clicking them.
+    expect(new Set(hrefs.filter((href) => href.startsWith('mailto:')))).toEqual(
+      new Set(['mailto:nivaranovapvtltd@gmail.com']),
+    )
     const links = hrefs.filter((href) => href.startsWith('/'))
     expect(links.length).toBeGreaterThanOrEqual(7)
     for (const href of links) {
@@ -106,6 +108,26 @@ test.describe('desktop navigation', () => {
       await expect(page).toHaveURL(href)
       await expect(page.getByRole('heading', { level: 1 })).not.toHaveText('Page not found')
     }
+  })
+
+  test('the footer links to the company profiles and WhatsApp, in new tabs', async ({ page }) => {
+    await page.goto('/')
+    const footer = page.getByRole('contentinfo')
+    const expected = {
+      'NivaraNova on LinkedIn': /^https:\/\/www\.linkedin\.com\/in\/nivaranova-technologies-private-limited-85b887449$/,
+      'NivaraNova on Instagram': /^https:\/\/www\.instagram\.com\/nivaranovatechnologiespvtltd\/$/,
+      'Chat with NivaraNova on WhatsApp': /^https:\/\/wa\.me\/917656852710\?text=/,
+    }
+    for (const [name, href] of Object.entries(expected)) {
+      const link = footer.getByRole('link', { name: `${name} (opens in a new tab)` })
+      await expect(link).toHaveAttribute('href', href)
+      await expect(link).toHaveAttribute('target', '_blank')
+      await expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+    }
+    await expect(footer.getByRole('link', { name: 'Email NivaraNova' })).toHaveAttribute(
+      'href',
+      'mailto:nivaranovapvtltd@gmail.com',
+    )
   })
 
   test('in-page section links jump to their sections', async ({ page }) => {

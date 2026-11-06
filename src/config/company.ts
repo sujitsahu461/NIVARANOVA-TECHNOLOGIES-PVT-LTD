@@ -58,9 +58,10 @@ export const company = {
     phoneAlternative: '+91 82602 35030' as string | null,
   },
 
-  /** Public profiles. Leave null until the profile exists. */
+  /** Public profiles, provided by the company. Leave null until the profile exists. */
   social: {
-    linkedin: null as string | null,
+    linkedin: 'https://www.linkedin.com/in/nivaranova-technologies-private-limited-85b887449' as string | null,
+    instagram: 'https://www.instagram.com/nivaranovatechnologiespvtltd/' as string | null,
     github: null as string | null,
     x: null as string | null,
   },

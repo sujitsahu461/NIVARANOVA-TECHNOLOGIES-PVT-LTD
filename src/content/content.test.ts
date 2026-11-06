@@ -63,6 +63,12 @@ describe('copy', () => {
       phone: '+91 76568 52710',
       phoneAlternative: '+91 82602 35030',
     })
+    expect(company.social).toEqual({
+      linkedin: 'https://www.linkedin.com/in/nivaranova-technologies-private-limited-85b887449',
+      instagram: 'https://www.instagram.com/nivaranovatechnologiespvtltd/',
+      github: null,
+      x: null,
+    })
   })
 
   it('keeps meta descriptions within search-result length', () => {

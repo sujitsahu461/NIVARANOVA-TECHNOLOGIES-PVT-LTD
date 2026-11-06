@@ -7,6 +7,8 @@ interface PhoneChooserProps {
   number: string
   /** Which way the options open. Use "up" near the bottom of the page. */
   placement?: 'down' | 'up'
+  /** "link": teal and underlined, for running text. "quiet": muted, like the footer links. */
+  tone?: 'link' | 'quiet'
   className?: string
 }
 
@@ -15,7 +17,7 @@ interface PhoneChooserProps {
  * WhatsApp chat with it. A disclosure button, so it works with a keyboard
  * and screen readers; Escape, tapping elsewhere or moving focus away closes it.
  */
-export function PhoneChooser({ number, placement = 'down', className }: PhoneChooserProps) {
+export function PhoneChooser({ number, placement = 'down', tone = 'link', className }: PhoneChooserProps) {
   const [open, setOpen] = useState(false)
   const panelId = useId()
   const rootRef = useRef<HTMLSpanElement>(null)
@@ -61,7 +63,12 @@ export function PhoneChooser({ number, placement = 'down', className }: PhoneCho
         aria-controls={panelId}
         aria-label={`${number}, call or WhatsApp`}
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex min-h-8 items-center gap-1 font-medium text-teal-strong underline underline-offset-4"
+        className={cn(
+          'inline-flex min-h-8 items-center gap-1 transition-colors',
+          tone === 'link'
+            ? 'font-medium text-teal-strong underline underline-offset-4'
+            : 'text-muted hover:text-ink',
+        )}
       >
         {number}
         <ChevronDown
